@@ -18,3 +18,13 @@ pytest-asyncio
 ruff
 mypy
 httpx
+boto3
+boto3-stubs
+celery
+redis
+google-genai
+PyPDF2
+passlib[bcrypt]
+PyJWT
+python-multipart
+bcrypt==3.2.2

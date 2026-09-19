@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ subject_of_lab | default('Lab Report') }}</title>
+    <style>
+        body {
+            font-family: "Times New Roman", Times, serif;
+            margin: 40px;
+            color: #000;
+            line-height: 1.5;
+        }
+        .cover-page {
+            text-align: center;
+            page-break-after: always;
+        }
+        .cover-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            line-height: 2;
+        }
+        .cover-table {
+            width: 100%;
+            margin-top: 80px;
+            text-align: left;
+        }
+        .cover-footer {
+            margin-top: 100px;
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 2;
+        }
+        
+        .problem-container {
+            margin-bottom: 40px;
+            page-break-inside: avoid;
+        }
+        .problem-title {
+            font-size: 16px;
+            font-weight: normal;
+            margin-bottom: 10px;
+        }
+        .highlight {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            margin-bottom: 20px;
+        }
+        .output-heading {
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 5px;
+        }
+        .output-text {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="cover-page">
+        <br><br><br>
+        <div class="cover-title">
+            LAB MANUAL<br>
+            of<br>
+            {{ subject_of_lab | default("OOPS LAB") }}<br>
+            {{ college | default("B. TECH (CSE) 3rd SEMESTER") }}
+        </div>
+        <p style="font-weight: bold; font-size: 14px;">{{ subject_code | default("CSDC0233") }} {{ subject_of_lab | default("Object-Oriented Programming") }} {% if date_of_lab %}<br>Date: {{ date_of_lab }}{% endif %}</p>
+        
+        <div style="margin: 60px 0;">
+            {% if college_logo %}
+                <img src="{{ college_logo }}" style="max-width: 150px; max-height: 150px;" />
+            {% else %}
+                <div style="width: 150px; height: 150px; border: 2px solid #000; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 10px;">LOGO</div>
+            {% endif %}
+        </div>
+
+        <table class="cover-table">
+            <tr>
+                <td style="width: 50%;">
+                    SUBMITTED BY:<br><br>
+                    Name: {{ user_name | default("PLASH SHARMA") }}<br>
+                    Roll Number: {{ roll_number | default("23103106") }}<br>
+                    GROUP: {{ group | default("CSE") }} {% if batch %}{{ batch }}{% endif %}
+                </td>
+                <td style="width: 50%; vertical-align: top;">
+                    SUBMITTED TO:<br><br>
+                    {{ teacher_name | default("Dr. Teacher Name") }}<br>
+                    (Assistant Professor)
+                </td>
+            </tr>
+        </table>
+
+        <div class="cover-footer">
+            DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING<br>
+            DR. B.R. AMBEDKAR NATIONAL INSTITUTE OF TECHNOLOGY<br>
+            JALANDHAR
+        </div>
+    </div>
+
+    <!-- Multi-problem format -->
+    {% if is_multi_problem %}
+        {% for prob in problems %}
+        <div class="problem-container">
+            <div class="problem-title">{{ loop.index }}. {{ prob.question }}</div>
+            
+            {{ prob.formatted_code }}
+            
+            <div class="output-heading">OUTPUT</div>
+            <div class="output-text">{{ prob.output }}</div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <!-- Fallback for old single-problem format -->
+        <div class="problem-container">
+            <h3>Aim:</h3>
+            <p>{{ aim }}</p>
+            <h3>Algorithm / Theory:</h3>
+            <p style="white-space: pre-wrap;">{{ algorithm }}</p>
+            <h3>Source Code:</h3>
+            {{ code }}
+            <h3>Output:</h3>
+            <p style="white-space: pre-wrap;">{{ output }}</p>
+            <h3>Result:</h3>
+            <p>{{ result }}</p>
+        </div>
+    {% endif %}
+</body>
+</html>
