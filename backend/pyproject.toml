@@ -1,0 +1,25 @@
+[project]
+name = "labpilotai-backend"
+version = "0.1.0"
+description = "Backend for LabPilotAI"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = []
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+addopts = "-v --cov=app --cov-report=term-missing"
+testpaths = ["tests"]
+asyncio_mode = "auto"
