@@ -10,9 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import AsyncSessionLocal
 from app.models import User
 
-SECRET_KEY = "supersecretkey_change_in_production"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
+import os
+
+SECRET_KEY = os.getenv("SECRET_KEY", "supersecretkey_change_in_production")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", str(60 * 24 * 7)))
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
@@ -40,10 +42,12 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")
-        if user_id is None:
+        user_id_raw = payload.get("sub")
+        if user_id_raw is None:
             raise credentials_exception
-    except jwt.InvalidTokenError:
+        import uuid as _uuid
+        user_id = _uuid.UUID(str(user_id_raw))
+    except (jwt.InvalidTokenError, ValueError, TypeError):
         raise credentials_exception
 
     user = await db.get(User, user_id)

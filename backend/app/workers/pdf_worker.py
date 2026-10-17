@@ -40,7 +40,8 @@ async def async_process_pdf(submission_id_str: str) -> None:
                 metadata={
                     "user_name": submission.user.name,
                     "college": submission.user.college,
-                    "college_logo": submission.user.college_logo,
+                    "college_logo": submission.user.college_logo if (getattr(submission, 'include_logo', True) is not False) else None,
+                    "include_logo": getattr(submission, 'include_logo', True) is not False,
                     "roll_number": submission.user.roll_number,
                     "date_of_lab": submission.date_of_lab,
                     "subject_of_lab": submission.subject_of_lab,

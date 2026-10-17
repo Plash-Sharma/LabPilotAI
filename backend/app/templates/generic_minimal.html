@@ -2,30 +2,235 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Lab Report</title>
+    <title>{{ subject_of_lab | default('Lab Report') }}</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; color: #222; }
-        h2 { border-bottom: 1px solid #ccc; padding-bottom: 6px; }
-        .highlight { background: #f8f8f8; border: 1px solid #ddd; padding: 12px; font-family: monospace; }
-        .pre-wrap { white-space: pre-wrap; background: #f5f5f5; padding: 10px; border-left: 4px solid #bbb; font-family: monospace; }
+        @page {
+            size: A4;
+            margin: 20mm;
+            @bottom-center {
+                content: counter(page);
+                font-family: Arial, sans-serif;
+                font-size: 10pt;
+                color: #666;
+            }
+        }
+        @page :first {
+            @bottom-center {
+                content: normal;
+            }
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #222;
+            line-height: 1.5;
+        }
+
+        .cover-page {
+            text-align: center;
+            page-break-after: always;
+            break-after: page;
+            min-height: 850px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .cover-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+        .cover-meta {
+            font-size: 15px;
+            color: #4b5563;
+            margin-bottom: 40px;
+        }
+
+        .cover-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 60px;
+            margin-bottom: 60px;
+        }
+        .cover-table td {
+            vertical-align: top;
+            padding: 0 10px;
+        }
+        .submitted-by {
+            text-align: left;
+            width: 50%;
+        }
+        .submitted-to {
+            text-align: right;
+            width: 50%;
+        }
+        .sub-header {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 8px;
+            text-decoration: underline;
+        }
+        .sub-details {
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .problem-page {
+            page-break-before: always;
+            break-before: page;
+            padding-top: 10px;
+        }
+        .problem-page:first-of-type {
+            page-break-before: avoid;
+            break-before: avoid;
+        }
+
+        .problem-header {
+            border-bottom: 2px solid #2563eb;
+            padding-bottom: 6px;
+            margin-bottom: 16px;
+        }
+        .question-badge {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e3a8a;
+        }
+
+        .section-label {
+            font-size: 13px;
+            font-weight: bold;
+            color: #374151;
+            margin-top: 14px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .aim-box {
+            background: #f3f4f6;
+            border-left: 4px solid #2563eb;
+            padding: 10px 14px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .highlight {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #3b82f6;
+            border-radius: 4px;
+            padding: 12px 14px;
+            font-family: monospace;
+            font-size: 10pt;
+            line-height: 1.45;
+        }
+        .highlight pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .input-box {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-left: 4px solid #0284c7;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 10pt;
+        }
+        .input-content {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+
+        .output-box {
+            background: #111827;
+            border-radius: 4px;
+            padding: 10px 14px;
+            page-break-inside: avoid;
+        }
+        .output-content {
+            margin: 0;
+            font-family: monospace;
+            font-size: 10pt;
+            color: #4ade80;
+            white-space: pre-wrap;
+        }
+
+        {{ code_css | safe }}
     </style>
 </head>
 <body>
-    <h1 style="text-align:center">Lab Record</h1>
+    <!-- PAGE 1: COVER PAGE -->
+    <div class="cover-page">
+        <div>
+            <div class="cover-title">LABORATORY RECORD</div>
+            <div class="cover-meta">
+                <strong>{{ subject_of_lab | default('Course Work') }}</strong>
+                {% if subject_code %} ({{ subject_code }}){% endif %}
+            </div>
+        </div>
 
-    <h2>Aim</h2>
-    <p>{{ aim }}</p>
+        <table class="cover-table">
+            <tr>
+                <td class="submitted-by">
+                    <div class="sub-header">SUBMITTED BY:</div>
+                    <div class="sub-details">
+                        <strong>Name:</strong> {{ user_name | default("Student Name") }}<br>
+                        <strong>Roll Number:</strong> {{ roll_number | default("N/A") }}<br>
+                        <strong>Group:</strong> {{ group | default("CSE") }}<br>
+                        {% if batch %}<strong>Batch:</strong> {{ batch }}<br>{% endif %}
+                        {% if date_of_lab %}<strong>Date:</strong> {{ date_of_lab }}<br>{% endif %}
+                    </div>
+                </td>
+                <td class="submitted-to">
+                    <div class="sub-header">SUBMITTED TO:</div>
+                    <div class="sub-details">
+                        <strong>{{ teacher_name | default("Instructor") }}</strong>
+                    </div>
+                </td>
+            </tr>
+        </table>
 
-    <h2>Algorithm / Theory</h2>
-    <p class="pre-wrap">{{ algorithm }}</p>
+        <div style="font-size: 12px; color: #6b7280; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+            {{ college | default("Laboratory Assessment Report") }}
+        </div>
+    </div>
 
-    <h2>Source Code</h2>
-    {{ code }}
+    <!-- QUESTIONS -->
+    {% for prob in problems %}
+    <div class="problem-page">
+        <div class="problem-header">
+            <span class="question-badge">Question {{ prob.index }}:</span>
+        </div>
 
-    <h2>Output</h2>
-    <p class="pre-wrap">{{ output }}</p>
+        <div class="section-label">Aim:</div>
+        <div class="aim-box">{{ prob.aim }}</div>
 
-    <h2>Result &amp; Learning</h2>
-    <p>{{ result }}</p>
+        <div class="section-label">Source Code:</div>
+        {{ prob.formatted_code | safe }}
+
+        <div class="section-label">Input:</div>
+        <div class="input-box">
+            {% if prob.stdin and prob.stdin.strip() %}
+            <pre class="input-content">{{ prob.stdin.strip() }}</pre>
+            {% else %}
+            <p style="margin: 0; font-style: italic; color: #9ca3af; font-size: 12px;">No input required</p>
+            {% endif %}
+        </div>
+
+        <div class="section-label">Output:</div>
+        <div class="output-box">
+            {% if prob.output and prob.output.strip() %}
+            <pre class="output-content">{{ prob.output.strip() }}</pre>
+            {% else %}
+            <pre class="output-content">Process exited successfully.</pre>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
 </body>
 </html>

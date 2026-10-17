@@ -7,6 +7,7 @@ On Linux CI it works natively.
 import uuid
 from pathlib import Path
 
+from typing import Generator
 import pytest
 
 from app.services.pdf_service import STORAGE_DIR, generate_pdf
@@ -15,7 +16,7 @@ TMPL = "nit_jalandhar_default.html"
 
 
 @pytest.fixture(autouse=True)
-def cleanup_pdfs() -> pytest.FixtureYield:
+def cleanup_pdfs() -> Generator[None, None, None]:
     """Remove any test PDFs after each test."""
     yield
     for f in STORAGE_DIR.glob("*.pdf"):

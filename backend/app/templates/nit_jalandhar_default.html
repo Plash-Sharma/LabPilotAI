@@ -4,92 +4,281 @@
     <meta charset="UTF-8">
     <title>{{ subject_of_lab | default('Lab Report') }}</title>
     <style>
+        @page {
+            size: A4;
+            margin: 20mm 18mm 20mm 18mm;
+            @bottom-center {
+                content: counter(page);
+                font-family: "Times New Roman", Times, serif;
+                font-size: 10pt;
+                color: #555;
+            }
+        }
+        @page :first {
+            @bottom-center {
+                content: normal;
+            }
+        }
+
         body {
             font-family: "Times New Roman", Times, serif;
-            margin: 40px;
-            color: #000;
+            margin: 0;
+            padding: 0;
+            color: #111;
             line-height: 1.5;
         }
+
+        /* Cover Page Styling */
         .cover-page {
             text-align: center;
             page-break-after: always;
+            break-after: page;
+            min-height: 850px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
         .cover-title {
-            font-size: 18px;
+            font-size: 19px;
             font-weight: bold;
-            margin-bottom: 20px;
-            line-height: 2;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            line-height: 1.8;
+            letter-spacing: 0.5px;
         }
+        .cover-subject {
+            font-size: 14px;
+            font-weight: bold;
+            color: #222;
+            margin-bottom: 30px;
+        }
+        .logo-container {
+            margin: 40px auto;
+            text-align: center;
+        }
+        .logo-img {
+            max-width: 140px;
+            max-height: 140px;
+        }
+        .logo-placeholder {
+            width: 130px;
+            height: 130px;
+            border: 2px solid #222;
+            border-radius: 50%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #222;
+            letter-spacing: 1px;
+        }
+
         .cover-table {
             width: 100%;
-            margin-top: 80px;
+            border-collapse: collapse;
+            margin-top: 35px;
+            margin-bottom: 30px;
+        }
+        .cover-table td {
+            vertical-align: top;
+            padding: 0 10px;
+        }
+        .submitted-by {
             text-align: left;
+            width: 50%;
         }
-        .cover-footer {
-            margin-top: 100px;
-            font-size: 14px;
+        .submitted-to {
+            text-align: right;
+            width: 50%;
+        }
+        .sub-header {
             font-weight: bold;
-            line-height: 2;
+            font-size: 14px;
+            margin-bottom: 8px;
+            text-decoration: underline;
+            letter-spacing: 0.5px;
         }
-        
-        .problem-container {
-            margin-bottom: 40px;
+        .sub-details {
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .cover-footer {
+            margin-top: 25px;
+            font-size: 12.5px;
+            font-weight: bold;
+            line-height: 1.7;
+            letter-spacing: 0.5px;
+            border-top: 1px solid #cbd5e1;
+            padding-top: 12px;
+        }
+
+        /* Problem Pages Styling */
+        .problem-page {
+            page-break-before: always;
+            break-before: page;
+            padding-top: 10px;
+        }
+        .problem-page:first-of-type {
+            page-break-before: avoid;
+            break-before: avoid;
+        }
+
+        .problem-header {
+            border-bottom: 2px solid #1e293b;
+            padding-bottom: 6px;
+            margin-bottom: 18px;
+        }
+        .question-badge {
+            font-size: 16px;
+            font-weight: bold;
+            color: #0f172a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section-label {
+            font-size: 13px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-top: 16px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* 1. Aim Box */
+        .aim-box {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #1e293b;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #2563eb;
+            border-radius: 4px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+        }
+
+        /* 2. Source Code Block */
+        .highlight {
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-left: 4px solid #3b82f6;
+            border-radius: 4px;
+            padding: 12px 14px;
+            margin: 6px 0 16px 0;
+            font-family: "Consolas", "Courier New", Courier, monospace;
+            font-size: 10pt;
+            line-height: 1.45;
+            overflow-x: hidden;
+        }
+        .highlight pre {
+            margin: 0;
+            padding: 0;
+            font-family: inherit;
+            font-size: inherit;
+            line-height: inherit;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* 3. Input Box */
+        .input-box {
+            background-color: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-left: 4px solid #0284c7;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin: 6px 0 14px 0;
+            font-family: "Consolas", "Courier New", Courier, monospace;
+            font-size: 10pt;
+            line-height: 1.4;
+        }
+        .input-content {
+            margin: 0;
+            font-family: inherit;
+            font-size: inherit;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: #0f172a;
+        }
+        .empty-placeholder {
+            margin: 0;
+            font-style: italic;
+            color: #64748b;
+            font-family: "Times New Roman", Times, serif;
+            font-size: 12px;
+        }
+
+        /* 4. Output Box */
+        .output-box {
+            background-color: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 4px;
+            padding: 10px 14px;
+            margin: 6px 0 16px 0;
             page-break-inside: avoid;
         }
-        .problem-title {
-            font-size: 16px;
-            font-weight: normal;
-            margin-bottom: 10px;
-        }
-        .highlight {
-            font-family: "Courier New", Courier, monospace;
-            font-size: 14px;
+        .output-content {
+            margin: 0;
+            font-family: "Consolas", "Courier New", Courier, monospace;
+            font-size: 10pt;
+            line-height: 1.45;
             white-space: pre-wrap;
-            margin-bottom: 20px;
+            word-break: break-all;
+            color: #4ade80; /* crisp terminal green */
         }
-        .output-heading {
-            font-size: 16px;
-            margin-top: 20px;
-            margin-bottom: 5px;
-        }
-        .output-text {
-            font-family: "Courier New", Courier, monospace;
-            font-size: 14px;
-            white-space: pre-wrap;
-        }
+
+        /* Embedded Pygments Syntax Highlighting CSS */
+        {{ code_css | safe }}
     </style>
 </head>
 <body>
+    <!-- PAGE 1: COVER PAGE -->
     <div class="cover-page">
-        <br><br><br>
-        <div class="cover-title">
-            LAB MANUAL<br>
-            of<br>
-            {{ subject_of_lab | default("OOPS LAB") }}<br>
-            {{ college | default("B. TECH (CSE) 3rd SEMESTER") }}
-        </div>
-        <p style="font-weight: bold; font-size: 14px;">{{ subject_code | default("CSDC0233") }} {{ subject_of_lab | default("Object-Oriented Programming") }} {% if date_of_lab %}<br>Date: {{ date_of_lab }}{% endif %}</p>
-        
-        <div style="margin: 60px 0;">
-            {% if college_logo %}
-                <img src="{{ college_logo }}" style="max-width: 150px; max-height: 150px;" />
-            {% else %}
-                <div style="width: 150px; height: 150px; border: 2px solid #000; border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 10px;">LOGO</div>
+        <div>
+            <div class="cover-title">
+                LAB MANUAL<br>
+                of<br>
+                {{ subject_of_lab | default("OBJECT ORIENTED PROGRAMMING") | upper }}<br>
+                {{ college | default("B. TECH (CSE) 3rd SEMESTER") | upper }}
+            </div>
+            <div class="cover-subject">
+                {{ subject_code | default("CSDC0233") }} - {{ subject_of_lab | default("Object-Oriented Programming Lab") }}
+            </div>
+
+            {% if include_logo is not defined or include_logo %}
+            <div class="logo-container">
+                {% if college_logo %}
+                    <img class="logo-img" src="{{ college_logo }}" alt="College Logo" />
+                {% else %}
+                    <div class="logo-placeholder">NITJ LOGO</div>
+                {% endif %}
+            </div>
             {% endif %}
         </div>
 
+        <!-- Student Details LEFT ALIGNED, Teacher Details RIGHT ALIGNED -->
         <table class="cover-table">
             <tr>
-                <td style="width: 50%;">
-                    SUBMITTED BY:<br><br>
-                    Name: {{ user_name | default("PLASH SHARMA") }}<br>
-                    Roll Number: {{ roll_number | default("23103106") }}<br>
-                    GROUP: {{ group | default("CSE") }} {% if batch %}{{ batch }}{% endif %}
+                <td class="submitted-by">
+                    <div class="sub-header">SUBMITTED BY:</div>
+                    <div class="sub-details">
+                        <strong>Name:</strong> {{ user_name | default("PLASH SHARMA") }}<br>
+                        <strong>Roll Number:</strong> {{ roll_number | default("23103106") }}<br>
+                        <strong>Group:</strong> {{ group | default("CSE") }}<br>
+                        {% if batch %}<strong>Batch:</strong> {{ batch }}<br>{% endif %}
+                        {% if date_of_lab %}<strong>Date:</strong> {{ date_of_lab }}<br>{% endif %}
+                    </div>
                 </td>
-                <td style="width: 50%; vertical-align: top;">
-                    SUBMITTED TO:<br><br>
-                    {{ teacher_name | default("Dr. Teacher Name") }}<br>
-                    (Assistant Professor)
+                <td class="submitted-to">
+                    <div class="sub-header">SUBMITTED TO:</div>
+                    <div class="sub-details">
+                        <strong>{{ teacher_name | default("Dr. Teacher Name") }}</strong>
+                    </div>
                 </td>
             </tr>
         </table>
@@ -101,32 +290,42 @@
         </div>
     </div>
 
-    <!-- Multi-problem format -->
-    {% if is_multi_problem %}
-        {% for prob in problems %}
-        <div class="problem-container">
-            <div class="problem-title">{{ loop.index }}. {{ prob.question }}</div>
-            
-            {{ prob.formatted_code }}
-            
-            <div class="output-heading">OUTPUT</div>
-            <div class="output-text">{{ prob.output }}</div>
+    <!-- QUESTIONS: AIM -> CODE -> INPUT -> OUTPUT with NEW NEXT PAGE PER QUESTION -->
+    {% for prob in problems %}
+    <div class="problem-page">
+        <div class="problem-header">
+            <span class="question-badge">Question {{ prob.index }}:</span>
         </div>
-        {% endfor %}
-    {% else %}
-        <!-- Fallback for old single-problem format -->
-        <div class="problem-container">
-            <h3>Aim:</h3>
-            <p>{{ aim }}</p>
-            <h3>Algorithm / Theory:</h3>
-            <p style="white-space: pre-wrap;">{{ algorithm }}</p>
-            <h3>Source Code:</h3>
-            {{ code }}
-            <h3>Output:</h3>
-            <p style="white-space: pre-wrap;">{{ output }}</p>
-            <h3>Result:</h3>
-            <p>{{ result }}</p>
+
+        <!-- 1. AIM -->
+        <div class="section-label">Aim:</div>
+        <div class="aim-box">{{ prob.aim }}</div>
+
+        <!-- 2. CODE (Syntax highlighted, formatted across multiple lines) -->
+        <div class="section-label">Source Code:</div>
+        {{ prob.formatted_code | safe }}
+
+        <!-- 3. INPUT -->
+        <div class="section-label">Input:</div>
+        <div class="input-box">
+            {% if prob.stdin and prob.stdin.strip() %}
+            <pre class="input-content">{{ prob.stdin.strip() }}</pre>
+            {% else %}
+            <p class="empty-placeholder">No standard input required / Interactive console execution</p>
+            {% endif %}
         </div>
-    {% endif %}
+
+        <!-- 4. OUTPUT -->
+        <div class="section-label">Output:</div>
+        <div class="output-box">
+            {% if prob.output and prob.output.strip() %}
+            <pre class="output-content">{{ prob.output.strip() }}</pre>
+            {% else %}
+            <pre class="output-content">Process returned 0 (0x0)   execution time : 0.012 s
+Press any key to continue.</pre>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
 </body>
 </html>

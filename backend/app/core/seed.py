@@ -7,8 +7,8 @@ import asyncio
 
 from sqlalchemy import select
 
-from app.core.database import AsyncSessionLocal
-from app.models import Template
+from app.core.database import AsyncSessionLocal, Base, engine
+from app.models import Template, User, Submission, LabSession, MCQTest, MCQAttempt, MCQQuestion, VivaQuestion
 
 DEFAULT_TEMPLATES = [
     {
@@ -25,6 +25,8 @@ DEFAULT_TEMPLATES = [
 
 
 async def seed() -> None:
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
     async with AsyncSessionLocal() as db:
         for tpl in DEFAULT_TEMPLATES:
             existing = await db.execute(

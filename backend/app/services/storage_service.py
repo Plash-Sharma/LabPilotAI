@@ -1,6 +1,7 @@
 import logging
 import os
 from pathlib import Path
+from typing import Any
 
 import boto3
 from botocore.exceptions import ClientError
@@ -15,13 +16,16 @@ STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 class StorageService:
     def __init__(self) -> None:
         self.bucket = os.getenv("S3_BUCKET_NAME")
+        endpoint_url = os.getenv("S3_ENDPOINT_URL") or os.getenv("AWS_ENDPOINT_URL")
         if self.bucket:
-            self.s3_client = boto3.client(
-                "s3",
-                aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-                aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-                region_name=os.getenv("AWS_REGION", "ap-south-1"),
-            )
+            kwargs: dict[str, Any] = {
+                "aws_access_key_id": os.getenv("AWS_ACCESS_KEY_ID"),
+                "aws_secret_access_key": os.getenv("AWS_SECRET_ACCESS_KEY"),
+                "region_name": os.getenv("AWS_REGION", "auto"),
+            }
+            if endpoint_url:
+                kwargs["endpoint_url"] = endpoint_url
+            self.s3_client = boto3.client("s3", **kwargs)
         else:
             self.s3_client = None
 

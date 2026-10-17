@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import JSON, DateTime, ForeignKey, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -56,6 +56,7 @@ class Submission(Base):
     template: Mapped["Template"] = relationship("Template")
     chunks: Mapped[list["DocumentChunk"]] = relationship("DocumentChunk", back_populates="submission", cascade="all, delete-orphan")
     viva_questions: Mapped[list["VivaQuestion"]] = relationship("VivaQuestion", back_populates="submission", cascade="all, delete-orphan")
+    mcq_tests: Mapped[list["MCQTest"]] = relationship("MCQTest", back_populates="submission", cascade="all, delete-orphan")
     
     aim: Mapped[str] = mapped_column(Text)
     algorithm: Mapped[str] = mapped_column(Text)
@@ -70,6 +71,7 @@ class Submission(Base):
     group_name: Mapped[str | None] = mapped_column(String, nullable=True)
     batch_name: Mapped[str | None] = mapped_column(String, nullable=True)
     teacher_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    include_logo: Mapped[bool | None] = mapped_column(Boolean, default=True, nullable=True)
 
     status: Mapped[str] = mapped_column(String, default="pending")
     pdf_url: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -100,3 +102,53 @@ class VivaQuestion(Base):
     answer_hint: Mapped[str] = mapped_column(Text, nullable=True)
 
     submission: Mapped["Submission"] = relationship("Submission")
+
+
+class MCQTest(Base):
+    __tablename__ = "mcq_tests"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    submission_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("submissions.id"))
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    title: Mapped[str] = mapped_column(String)
+    topic: Mapped[str | None] = mapped_column(String, nullable=True)
+    total_questions: Mapped[int] = mapped_column(default=10)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    submission: Mapped["Submission"] = relationship(back_populates="mcq_tests")
+    questions: Mapped[list["MCQQuestion"]] = relationship("MCQQuestion", back_populates="test", cascade="all, delete-orphan", order_by="MCQQuestion.order_index")
+    attempts: Mapped[list["MCQAttempt"]] = relationship("MCQAttempt", back_populates="test", cascade="all, delete-orphan", order_by="MCQAttempt.created_at.desc()")
+
+
+class MCQQuestion(Base):
+    __tablename__ = "mcq_questions"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    test_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("mcq_tests.id"))
+    order_index: Mapped[int] = mapped_column(default=0)
+    question_text: Mapped[str] = mapped_column(Text)
+    options: Mapped[list] = mapped_column(JSON)  # List of 4 string options
+    correct_index: Mapped[int] = mapped_column()  # 0, 1, 2, or 3
+    explanation: Mapped[str] = mapped_column(Text)
+    difficulty: Mapped[str] = mapped_column(String, default="medium")  # easy, medium, hard
+    concept: Mapped[str] = mapped_column(String, default="General")
+
+    test: Mapped["MCQTest"] = relationship(back_populates="questions")
+
+
+class MCQAttempt(Base):
+    __tablename__ = "mcq_attempts"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    test_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("mcq_tests.id"))
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    score: Mapped[int] = mapped_column()
+    total_questions: Mapped[int] = mapped_column()
+    percentage: Mapped[float] = mapped_column()
+    level: Mapped[str] = mapped_column(String)  # Mastery, Proficient, Intermediate, Beginner
+    feedback: Mapped[str] = mapped_column(Text)
+    analysis: Mapped[dict] = mapped_column(JSON)  # strengths, weaknesses, suggestions
+    selected_answers: Mapped[dict] = mapped_column(JSON)  # {question_id_str: option_index}
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    test: Mapped["MCQTest"] = relationship(back_populates="attempts")

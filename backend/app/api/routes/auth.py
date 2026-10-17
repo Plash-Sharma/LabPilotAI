@@ -7,12 +7,25 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from datetime import datetime, timedelta
+import re
 import secrets
 from app.api.deps import get_current_user
 from app.api.deps import create_access_token, get_db, get_password_hash, verify_password
 from app.models import User
 
 router = APIRouter(tags=["auth"])
+
+def validate_password_complexity(password: str) -> None:
+    if len(password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
+    if not re.search(r"[A-Z]", password):
+        raise HTTPException(status_code=400, detail="Password must contain at least one uppercase letter (A-Z)")
+    if not re.search(r"[a-z]", password):
+        raise HTTPException(status_code=400, detail="Password must contain at least one lowercase letter (a-z)")
+    if not re.search(r"\d", password):
+        raise HTTPException(status_code=400, detail="Password must contain at least one number (0-9)")
+    if not re.search(r"[!@#$%^&*(),.?\":{}|<>\-_+=\[\]\\\/~`]", password):
+        raise HTTPException(status_code=400, detail="Password must contain at least one special character (!@#$%^&*)")
 
 class UserCreate(BaseModel):
     email: str
@@ -28,6 +41,7 @@ class Token(BaseModel):
 
 @router.post("/register", response_model=Token)
 async def register(body: UserCreate, db: AsyncSession = Depends(get_db)) -> Any:
+    validate_password_complexity(body.password)
     stmt = select(User).where(User.email == body.email)
     existing_user = (await db.execute(stmt)).scalars().first()
     if existing_user:
@@ -101,6 +115,7 @@ class ResetPassword(BaseModel):
 
 @router.post("/reset-password")
 async def reset_password(body: ResetPassword, db: AsyncSession = Depends(get_db)):
+    validate_password_complexity(body.new_password)
     stmt = select(User).where(User.reset_token == body.token)
     user = (await db.execute(stmt)).scalars().first()
     if not user or not user.reset_token_expires or user.reset_token_expires < datetime.utcnow():
@@ -118,6 +133,7 @@ class ChangePassword(BaseModel):
 
 @router.post("/change-password")
 async def change_password(body: ChangePassword, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    validate_password_complexity(body.new_password)
     if not verify_password(body.old_password, current_user.password_hash):
         raise HTTPException(status_code=400, detail="Incorrect old password")
     current_user.password_hash = get_password_hash(body.new_password)
