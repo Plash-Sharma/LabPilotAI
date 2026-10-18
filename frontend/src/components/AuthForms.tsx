@@ -122,7 +122,19 @@ export function AuthForms() {
         api.getMe().catch(() => {});
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || 'Authentication failed');
+      let msg = err.detail || err.message || 'Authentication failed';
+      if (typeof msg === 'string') {
+        if (msg.includes('Incorrect email or password')) {
+          msg = 'Incorrect email or password';
+        } else if (msg.includes('API error')) {
+          msg = msg.replace(/^API error \d+:\s*/, '');
+          try {
+            const p = JSON.parse(msg);
+            if (p.detail) msg = p.detail;
+          } catch {}
+        }
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }

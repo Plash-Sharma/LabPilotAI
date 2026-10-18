@@ -54,6 +54,30 @@ export interface SubmissionCreate {
   include_logo?: boolean;
 }
 
+function parseApiErrorMessage(status: number, rawText: string): string {
+  if (!rawText || !rawText.trim()) {
+    return status === 401 ? 'Incorrect email or password' : `Request failed (${status})`;
+  }
+  try {
+    const parsed = JSON.parse(rawText);
+    if (typeof parsed?.detail === 'string') {
+      return parsed.detail;
+    }
+    if (Array.isArray(parsed?.detail) && parsed.detail[0]?.msg) {
+      return parsed.detail[0].msg;
+    }
+    if (typeof parsed?.message === 'string') {
+      return parsed.message;
+    }
+    if (typeof parsed?.error === 'string') {
+      return parsed.error;
+    }
+  } catch {
+    // rawText is not JSON
+  }
+  return rawText;
+}
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('token');
   const headers = new Headers(options.headers || {});
@@ -73,8 +97,12 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
       clearCache();
       localStorage.removeItem('token');
     }
-    const err = await res.text();
-    throw new Error(`API error ${res.status}: ${err}`);
+    const rawText = await res.text();
+    const cleanMessage = parseApiErrorMessage(res.status, rawText);
+    const error: any = new Error(cleanMessage);
+    error.status = res.status;
+    error.detail = cleanMessage;
+    throw error;
   }
   if (res.status === 204 || res.headers.get('content-length') === '0') {
     return {} as T;
