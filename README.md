@@ -1,353 +1,163 @@
-# 🚀 LabPilotAI
+# LabPilotAI
 
-<div align="center">
+Technical Documentation and Architecture Overview
 
-<img src="./frontend/public/favicon.svg" alt="LabPilotAI Logo" width="100" height="100" />
-
-### **Intelligent Engineering Lab Documentation, RAG Viva Examiner & Adaptive MCQ Testing Suite**
-
-*Automate university-compliant lab records with syntax highlighting and college crests, master oral examinations with Gemini-powered RAG tutoring, and validate conceptual mastery with dynamic MCQ tests.*
-
-[![CI Pipeline](https://github.com/Plash-Sharma/LabPilotAI/actions/workflows/ci.yml/badge.svg)](https://github.com/Plash-Sharma/LabPilotAI/actions/workflows/ci.yml)
-[![Live Frontend](https://img.shields.io/badge/Frontend-Vercel%20Live-black?logo=vercel)](https://lab-pilot-ai.vercel.app)
-[![Backend API](https://img.shields.io/badge/API-Render%20Live-46E3B7?logo=render)](https://labpilot-huu9.onrender.com/docs)
-[![Python Version](https://img.shields.io/badge/Python-3.12%2B-blue?logo=python)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688?logo=fastapi)](https://fastapi.tiangolo.com)
-[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.2%2B-3178C6?logo=typescript)](https://www.typescriptlang.org)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-38B2AC?logo=tailwindcss)](https://tailwindcss.com)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%20%2B%20pgvector-336791?logo=postgresql)](https://github.com/pgvector/pgvector)
-[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-AI%20GenAI%20SDK-8E75C2?logo=google)](https://aistudio.google.com)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-[**🌐 Live Application**](https://lab-pilot-ai.vercel.app) • [**📖 Swagger API Docs**](https://labpilot-huu9.onrender.com/docs) • [**☁️ Free Deployment Guide**](./docs/FREE_DEPLOYMENT_GUIDE.md)
-
-</div>
+LabPilotAI is an engineering laboratory record automation, vector search (RAG) examination, and adaptive diagnostic assessment platform. It ingests source code, algorithmic problem definitions, and execution outputs, compiling them into institutional-standard PDF reports with tokenized syntax highlighting. Concurrently, it vectorizes experiment documentation into a vector database, enabling retrieval-augmented generation (RAG) for viva voce oral examination prep and adaptive technical multiple-choice assessments.
 
 ---
 
-## 📑 Table of Contents
+## Table of Contents
 
-- [Executive Summary](#-executive-summary)
-- [System Architecture](#-system-architecture)
-- [Deep Dive: Core Pillars & Features](#-deep-dive-core-pillars--features)
-  - [1. Automated University Lab Report Generation](#1-automated-university-lab-report-generation)
-  - [2. AI-Powered Viva Tutor & Oral Examiner (RAG)](#2-ai-powered-viva-tutor--oral-examiner-rag)
-  - [3. Adaptive MCQ Knowledge Testing Engine](#3-adaptive-mcq-knowledge-testing-engine)
-  - [4. Code Execution Policy & Sandboxing](#4-code-execution-policy--sandboxing)
-  - [5. Unified Student Dashboard & Multi-Lab Merge](#5-unified-student-dashboard--multi-lab-merge)
-  - [6. Authentication & Account Security](#6-authentication--account-security)
-  - [7. Modern Responsive UI & Design Aesthetics](#7-modern-responsive-ui--design-aesthetics)
-- [Complete Technology Stack](#-complete-technology-stack)
-- [Data Models & Schema Architecture](#-data-models--schema-architecture)
-- [REST API Reference](#-rest-api-reference)
-- [Repository Structure](#-repository-structure)
-- [Local Development Walkthrough](#-local-development-walkthrough)
-  - [Prerequisites](#prerequisites)
-  - [1. Clone Repository](#1-clone-repository)
-  - [2. Start Infrastructure via Docker](#2-start-infrastructure-via-docker)
-  - [3. Backend Configuration & Setup](#3-backend-configuration--setup)
-  - [4. Frontend Configuration & Setup](#4-frontend-configuration--setup)
-- [Environment Variables Configuration](#-environment-variables-configuration)
-- [Testing & Quality Assurance](#-testing--quality-assurance)
-- [Production Deployment](#-production-deployment)
-- [License & Author](#-license--author)
+- [1. System Overview and Core Concepts](#1-system-overview-and-core-concepts)
+- [2. Technology Stack](#2-technology-stack)
+- [3. Architecture and Data Flow](#3-architecture-and-data-flow)
+- [4. Repository and Component Structure](#4-repository-and-component-structure)
+- [5. Database Schema and Data Models](#5-database-schema-and-data-models)
+- [6. Core Engineering Subsystems](#6-core-engineering-subsystems)
+  - [6.1 Automated PDF Compilation Engine](#61-automated-pdf-compilation-engine)
+  - [6.2 RAG Vector Indexing and Viva AI Tutor](#62-rag-vector-indexing-and-viva-ai-tutor)
+  - [6.3 Adaptive MCQ Diagnostic Generator](#63-adaptive-mcq-diagnostic-generator)
+  - [6.4 Security Architecture and Threat Mitigation](#64-security-architecture-and-threat-mitigation)
+  - [6.5 Client-Side Architecture and Caching](#65-client-side-architecture-and-caching)
+- [7. REST API Reference](#7-rest-api-reference)
+- [8. Local Setup and Development](#8-local-setup-and-development)
+- [9. Configuration and Environment Variables](#9-configuration-and-environment-variables)
+- [10. Testing and Quality Assurance](#10-testing-and-quality-assurance)
+- [11. Production Deployment Guide](#11-production-deployment-guide)
+- [12. License](#12-license)
 
 ---
 
-## 💡 Executive Summary
+## 1. System Overview and Core Concepts
 
-Laboratory coursework in computer science and engineering disciplines requires students to submit formatted practical reports every week containing algorithms, source code, execution outputs, and theoretical deductions. At examination time, students face rigorous viva voce assessments and oral questions from external examiners with limited preparation resources.
+### Problem Scope
+In academic computer science and engineering coursework, practical laboratory records require significant manual formatting: structuring problem statements, embedding source code with language-appropriate indentation, attaching execution outputs, and maintaining institutional header standards across semesters. When preparation for practical viva voce assessments and oral examinations occurs, students lack automated, concept-grounded evaluation tools tailored to their specific laboratory submissions.
 
-**LabPilotAI** solves both challenges simultaneously:
-1. **Document Pipeline**: Ingests raw code (C++, Python, Java) and execution output, runs formatting and syntax highlighting via Pygments, and generates publication-grade, university-compliant PDF reports using WeasyPrint with college crests and student metadata.
-2. **Cognitive AI Tutor**: Parses generated lab reports into semantic vector chunks using `pgvector` and Google Gemini embeddings (`gemini-embedding-001`), simulating an interactive viva examination professor who asks conceptual, algorithmic, and edge-case questions.
-3. **Adaptive MCQ Engine**: Dynamically creates tailored, non-repeating multiple-choice quizzes across three difficulty tiers (*Easy*, *Medium*, *Hard*) with real-time scoring, analytical breakdowns of strong/weak topics, and step-by-step explanations.
+### Engineering Solution
+LabPilotAI automates both documentation generation and conceptual assessment through a unified backend and frontend architecture:
+- **Declarative PDF Compilation**: Converts JSON-structured or raw problem inputs into standardized academic PDF records using Jinja2 templates, Pygments lexical tokenizers, and WeasyPrint CSS Paged Media.
+- **RAG-Grounded Viva Voce Simulation**: Ingests compiled PDF documents, divides them into semantic chunks, generates 768-dimensional embeddings using Google Gemini (`gemini-embedding-001`), and indexes them in PostgreSQL via `pgvector` for conversational oral exam tutoring.
+- **Dynamic Diagnostic Assessments**: Generates 10 to 15 non-repeating multiple-choice questions balanced across three conceptual difficulty tiers (Easy, Medium, Hard), with real-time scoring, analytical proficiency classification, and conceptual diagnostics.
+- **Course Portfolio Concatenation**: Assembles multiple laboratory experiments belonging to a given session or semester into a single indexed PDF binder.
 
 ---
 
-## 🏗️ System Architecture
+## 2. Technology Stack
+
+### Frontend Application
+- **Framework**: React 18.2.0 with TypeScript 5.2+
+- **Build System**: Vite 5.2 (Native ESModules, fast HMR, production minification)
+- **Styling Architecture**: Tailwind CSS 4.0 / PostCSS with CSS variable design tokens
+- **Routing**: React Router DOM 7.18
+- **Iconography**: Lucide React
+- **State & Data Management**: Custom React Contexts (`AuthContext`, `ThemeContext`), in-memory SWR-style caching, and optimistic client updates
+
+### Backend Services
+- **Framework**: FastAPI 0.110+ (Asynchronous ASGI framework, Python 3.12+)
+- **Server**: Uvicorn (Development) / Gunicorn (Production)
+- **Data Serialization & Validation**: Pydantic v2 and Pydantic-Settings
+- **Database Layer**: SQLAlchemy 2.0 (AsyncIO) with `asyncpg` driver
+- **Database Migrations**: Alembic
+- **Asynchronous Task Queue (Optional)**: Celery 5.3 with Redis 7 broker for high-throughput background PDF compilation
+
+### Persistence and Vector Database
+- **Relational Database**: PostgreSQL 16
+- **Vector Extension**: `pgvector` (768-dimensional vector indexing)
+- **In-Memory Store / Broker**: Redis 7
+
+### Document Generation Pipeline
+- **Rendering Engine**: WeasyPrint (Paged Media CSS3, HTML-to-PDF compiler)
+- **Template Engine**: Jinja2
+- **Syntax Highlighting**: Pygments (Dynamic lexer resolution for C++, Python, Java, JavaScript)
+- **Document Processing**: PyPDF2 (Binary text extraction and multi-page concatenation)
+
+### Artificial Intelligence & Machine Learning
+- **Large Language Models**: Google Gemini (`gemini-2.5-flash`, `gemini-3.5-flash-lite`) via `google-genai` SDK
+- **Embeddings Engine**: Google GenAI `gemini-embedding-001` (768-dimensional output vectors)
+
+### Infrastructure and Deployment
+- **Containerization**: Docker, Docker Compose
+- **Cloud Infrastructure**: Vercel (Frontend CDN), Render (Backend Container), Supabase / Neon (Managed PostgreSQL with pgvector), Cloudflare R2 (S3-compatible zero-egress PDF storage)
+- **Continuous Integration**: GitHub Actions (Linting, static analysis, unit tests, bundle verification)
+
+---
+
+## 3. Architecture and Data Flow
 
 ```mermaid
 flowchart TD
-    subgraph Client ["Frontend Layer (Vite + React 18 + TS)"]
-        UI[Single Page Application]
-        AuthCtx[AuthContext & JWT Cache]
-        ThemeCtx[ThemeContext Dark/Light]
-        ClientAPI[Optimistic API Client]
+    subgraph Client ["Client Layer (React 18 + TypeScript SPA)"]
+        UI[User Interface]
+        ClientAPI[Type-Safe API Client]
+        Cache[In-Memory SWR Cache]
     end
 
-    subgraph Gateway ["FastAPI Gateway & Auth"]
-        Router[API Router /api/v1]
-        JWTAuth[OAuth2 / BCrypt Auth Filter]
+    subgraph API_Gateway ["FastAPI Gateway (/api/v1)"]
+        Router[API Router]
+        AuthGuard[OAuth2 / JWT Bearer Guard]
+        RateLimiter[Sliding Window Rate Limiter]
         CORS[CORS Middleware]
     end
 
-    subgraph Processing ["Core Service Layer"]
-        PDFServ[PDF Compiler Service]
-        ExecServ[Sandbox Execution Engine]
-        RAGServ[RAG & Viva Tutor Service]
-        MCQServ[Adaptive MCQ Service]
-        MergeServ[PDF Binder Merger]
-        StorageServ[S3 / Cloudflare R2 / Local Disk]
+    subgraph Application_Services ["Core Services"]
+        PDFService[PDF Compiler Service]
+        RAGService[RAG & Viva Tutor Service]
+        MCQService[Adaptive MCQ Service]
+        MergeService[PDF Binder Assembly Service]
+        StorageService[Storage Abstraction S3 / R2 / Local]
     end
 
-    subgraph AI ["AI & Vector Intelligence"]
-        GeminiLLM[Google Gemini 2.5 Flash / 3.5 Flash Lite]
-        GeminiEmbed[Google GenAI Embeddings text-embedding-004]
+    subgraph Vector_and_Data ["Persistence Layer"]
+        Postgres[(PostgreSQL 16)]
+        PGVector[(pgvector 768-dim Vectors)]
+        LocalFS[(Local Storage Volume)]
+        R2[(Cloudflare R2 Object Storage)]
     end
 
-    subgraph Data ["Data Persistence Layer"]
-        Postgres[(PostgreSQL 16 DB)]
-        PGVector[(pgvector 768-dim Embeddings)]
-        RedisCache[(Redis Broker / Cache)]
+    subgraph AI_Engine ["Google Gemini AI"]
+        EmbedAPI[gemini-embedding-001]
+        LLMAPI[gemini-2.5-flash / gemini-3.5-flash-lite]
     end
 
     UI --> ClientAPI
+    ClientAPI <--> Cache
     ClientAPI -->|REST + Bearer Token| CORS
-    CORS --> Router
-    Router --> JWTAuth
+    CORS --> RateLimiter
+    RateLimiter --> Router
+    Router --> AuthGuard
 
-    JWTAuth --> PDFServ
-    JWTAuth --> ExecServ
-    JWTAuth --> RAGServ
-    JWTAuth --> MCQServ
-    JWTAuth --> MergeServ
+    AuthGuard --> PDFService
+    AuthGuard --> RAGService
+    AuthGuard --> MCQService
+    AuthGuard --> MergeService
 
-    PDFServ -->|Jinja2 + WeasyPrint + Pygments| StorageServ
-    ExecServ -->|Subprocess C++/Py/Java Sandbox| ExecServ
-    RAGServ -->|Vector Search & Chunking| PGVector
-    RAGServ -->|Context + Prompts| GeminiLLM
-    MCQServ -->|Question Generation & Evaluation| GeminiLLM
-    MergeServ -->|PyPDF2 Binder Assembly| StorageServ
+    PDFService -->|Jinja2 + WeasyPrint + Pygments| StorageService
+    StorageService --> LocalFS
+    StorageService --> R2
 
-    RAGServ -.->|Embed Content| GeminiEmbed
-    GeminiEmbed -.->|768-dim Vectors| PGVector
+    RAGService -->|Extract Text| PDFService
+    RAGService -->|Generate 768-dim Embeddings| EmbedAPI
+    EmbedAPI -->|Store Vectors| PGVector
+    RAGService -->|Ground Context + Prompts| LLMAPI
+
+    MCQService -->|Question Synthesis & Scoring| LLMAPI
+    MergeService -->|Concatenate PDFs| StorageService
+
     Router --> Postgres
 ```
 
 ---
 
-## 🔬 Deep Dive: Core Pillars & Features
-
-### 1. Automated University Lab Report Generation
-- **Single & Multi-Problem Support**: Submit either a single comprehensive experiment or an array of distinct problems (e.g., Problem 1: Binary Search Tree insertion, Problem 2: AVL Tree rotations).
-- **Intelligent Pygments Tokenization**: Automatic lexer detection for C++, Python, Java, JavaScript, and other languages, rendering tokenized, syntax-colored code blocks with custom background containers.
-- **University Layout Templates**:
-  - `nit_jalandhar_default.html`: National Institute of Technology Jalandhar standard academic laboratory layout with formal borders, departmental headers, and signature blocks.
-  - `generic_minimal.html`: Clean, modern international academic standard template.
-- **Custom Institutional Branding**: Dynamically embeds college names, student roll numbers, batch identifiers, group designations, supervising faculty names, and uploaded college crests.
-- **Semester Portfolio Merging**: Merge all completed lab experiments of a subject into a single course binder with a unified index (`/sessions/{id}/merge`).
-
-### 2. AI-Powered Viva Tutor & Oral Examiner (RAG)
-- **Vector Ingestion Pipeline**: Extracts plain text from the compiled PDF using `PyPDF2`, divides it into 1,000-character semantic chunks, and generates 768-dimensional vector embeddings via `gemini-embedding-001`.
-- **RAG Semantic Search**: Stores chunks in PostgreSQL using `pgvector` for similarity matching against examiner queries.
-- **Conversational Oral Examination**: Interactive ChatGPT-style conversational tutor (`/submissions/{id}/chat`) powered by `gemini-2.5-flash` / `gemini-3.5-flash-lite`.
-- **Algorithmic Heuristic Fallback**: Includes built-in analytical heuristics that detect sorting algorithms, recursion, loop invariants, and binary search logic to generate viva questions even if Gemini API limits are reached.
-- **Clean Mathematical Notation**: Custom prompt constraints enforce plain text and code backtick formatting for asymptotic notation (`O(N log N)`) avoiding confusing LaTeX raw dollar signs.
-
-### 3. Adaptive MCQ Knowledge Testing Engine
-- **Dynamic Question Synthesis**: Generates 10 to 15 unique multiple-choice questions tailored to the student's exact code implementation, time complexity, and theoretical foundations.
-- **Cross-Attempt Deduplication**: Queries past question texts (`get_existing_question_texts`) to guarantee completely new questions on every practice run.
-- **3-Tier Difficulty Distribution**: Questions explicitly balanced between *Easy* (syntax, output verification), *Medium* (algorithm logic, trace), and *Hard* (edge cases, asymptotic bounds).
-- **Instant Automated Evaluation**: Immediate grading upon submission with detailed step-by-step rationales for each option.
-- **Diagnostic Performance Analytics**:
-  - Proficiency classification: **Mastery** (≥85%), **Proficient** (70–84%), **Intermediate** (50–69%), **Beginner** (<50%).
-  - Concept-by-concept accuracy breakdown.
-  - Identification of primary strengths and critical weaknesses with targeted study recommendations.
-
-### 4. Code Execution Policy & Sandboxing
-- **Production Defense-in-Depth**: Direct server-side arbitrary code execution is strictly disabled by default (`ENABLE_SERVER_EXECUTION=false`) on production application servers to eliminate remote code execution (RCE) vectors, host environment secret leakage (`GEMINI_API_KEY`, `DATABASE_URL`, `SECRET_KEY`, `AWS_ACCESS_KEY_ID`), and denial-of-service risks.
-- **Standard Student Workflow**: Students execute programs in their local IDE or compiler and paste the verified terminal output directly into the report editor.
-- **Isolated Runner Integration**: When remote execution is required, `/execute` delegates to an external unprivileged container runner (such as private Piston or Judge0 instances via `PISTON_API_URL`) running with zero host access and stripped environments.
-- **Access Controls & Rate Limiting**: Code execution endpoints require user authentication (`get_current_user`) and enforce sliding-window rate limiting.
-
-### 5. Unified Student Dashboard & Multi-Lab Merge
-- **Multi-Dimension Filtering**: Real-time client-side search by filename, aim, or subject dropdown.
-- **Status Indicators**: Visual badges denoting report status (`Ready`, `Pending`, `Failed`).
-- **In-Modal PDF Previewing**: Inline PDF rendering without leaving the dashboard via `/submissions/{id}/view`.
-- **One-Click Downloads**: Direct downloads with sanitized, encoded Content-Disposition filenames via `/submissions/{id}/download`.
-- **Direct Action Links**: Quick navigation to launch a Viva session or MCQ test directly from any lab card.
-
-### 6. Authentication & Account Security
-- **Cryptographic Authentication**: JWT access tokens signed with `HS256` and password hashing utilizing `bcrypt`.
-- **Enforced Password Complexity**: Real-time validation requiring ≥8 characters, uppercase, lowercase, numbers, and special symbols (`!@#$%^&*`).
-- **Hardened Password Recovery**:
-  - **Email-Only Delivery**: Reset tokens are delivered strictly via SMTP email to the account's verified address. No tokens or reset links are ever exposed in API responses.
-  - **Host Header Poisoning Immunity**: Reset links strictly utilize the immutable server-side `FRONTEND_URL` environment variable, ignoring spoofable client `Origin` or `Referer` headers.
-  - **Enumeration Defense**: Returns an identical generic confirmation message regardless of whether the email exists in the database.
-  - **Sliding-Window Rate Limiting**: Built-in IP-level rate limiting throttles requests (max 5 requests per 10 minutes) to prevent email spamming and abuse.
-  - **Single-Use Cryptographic Tokens**: High-entropy 32-byte tokens with strict 15-minute expiration times, invalidated immediately upon use.
-- **Student Profile Management**: Pre-cached user profile with college name, roll number, and custom crest/logo base64 storage.
-
-### 7. Modern Responsive UI & Design Aesthetics
-- **Dark & Light Mode**: Seamless dark and light themes with state persistence via `ThemeContext`.
-- **Fluid Layouts**: Desktop sidebar paired with a mobile slide-out drawer navigation menu.
-- **Custom Branding**: Bespoke SVG vector icons, favicon, and modern typography.
-- **Zero-Latency In-Memory Cache**: SWR-style caching for user profiles and lab templates, preventing unnecessary API waterfalls.
-
----
-
-## 💻 Complete Technology Stack
-
-| Layer | Component | Version / Description |
-| :--- | :--- | :--- |
-| **Frontend** | React | 18.2.0 |
-| | TypeScript | 5.2.2 |
-| | Vite | 5.2.0 (Fast HMR & Optimized Production Bundler) |
-| | Styling | Tailwind CSS 4.0 / PostCSS |
-| | Icons | Lucide React |
-| | Routing | React Router DOM 7.18 |
-| **Backend** | FastAPI | 0.110+ (Asynchronous ASGI Web Framework) |
-| | Python | 3.12+ |
-| | ASGI Server | Uvicorn & Gunicorn |
-| | Validation | Pydantic v2 & Pydantic-Settings |
-| **Database** | PostgreSQL | 16 with `pgvector` Extension |
-| | ORM | SQLAlchemy 2.0 (AsyncIO with `asyncpg`) |
-| | Migrations | Alembic |
-| **PDF Generation** | WeasyPrint | Paged Media CSS & HTML to PDF Compiler |
-| | Templating | Jinja2 |
-| | Syntax Highlighter | Pygments (Tokenized HTML Formatting) |
-| | System Libraries | Cairo, Pango, GDK-Pixbuf, libffi |
-| **AI & LLM** | LLM Engine | Google Gemini (`gemini-2.5-flash`, `gemini-3.5-flash-lite`) |
-| | Vector Embeddings | Google GenAI SDK (`gemini-embedding-001`, 768 dims) |
-| **Storage & Workers** | Object Storage | Cloudflare R2 / AWS S3 / Local Disk Fallback |
-| | Worker Tasks | Celery 5.3 + Redis 7 (Async PDF generation support) |
-| **DevOps** | Containerization | Docker & Docker Compose |
-| | Cloud Hosting | Vercel (Frontend), Render (Backend), Supabase (DB), R2 (Storage) |
-| | CI / CD | GitHub Actions Workflows |
-
----
-
-## 🗄️ Data Models & Schema Architecture
-
-```
-                    ┌───────────────────────────┐
-                    │           users           │
-                    ├───────────────────────────┤
-                    │ id (UUID, PK)             │
-                    │ email (String, Unique)    │
-                    │ password_hash (String)    │
-                    │ name (String)             │
-                    │ college (String)          │
-                    │ college_logo (Text)       │
-                    │ roll_number (String)      │
-                    │ reset_token (String)      │
-                    │ reset_token_expires (DT)  │
-                    └─────────────┬─────────────┘
-                                  │ 1:N
-         ┌────────────────────────┼────────────────────────┐
-         │ 1:N                    │ 1:N                    │ 1:N
-┌────────▼──────────┐    ┌────────▼──────────┐    ┌────────▼──────────┐
-│   lab_sessions    │    │    submissions    │    │     mcq_tests     │
-├───────────────────┤    ├───────────────────┤    ├───────────────────┤
-│ id (UUID, PK)     │    │ id (UUID, PK)     │    │ id (UUID, PK)     │
-│ user_id (FK)      │◄───┤ lab_session_id(FK)│    │ submission_id(FK) │
-│ subject (String)  │    │ user_id (FK)      │    │ user_id (FK)      │
-│ semester (String) │    │ template_id (FK)  │    │ title (String)    │
-└───────────────────┘    │ aim, algorithm    │    │ topic (String)    │
-                         │ code, output      │    │ total_questions   │
-                         │ result, filename  │    └─────────┬─────────┘
-                         │ subject_of_lab    │              │ 1:N
-                         │ teacher_name      │     ┌────────┴────────┐
-                         │ status, pdf_url   │     │                 │
-                         └─────────┬─────────┘     │ 1:N             │ 1:N
-                                   │          ┌────▼────────┐  ┌─────▼────────┐
-             ┌─────────────────────┼────┐     │mcq_questions│  │ mcq_attempts │
-             │ 1:N                 │1:N │     ├─────────────┤  ├──────────────┤
-     ┌───────▼────────┐     ┌──────▼──┐ │     │id (UUID, PK)│  │id (UUID, PK) │
-     │ document_chunks│     │  viva_  │ │     │test_id (FK) │  │test_id (FK)  │
-     ├────────────────┤     │questions│ │     │question_text│  │user_id (FK)  │
-     │id (UUID, PK)   │     ├─────────┤ │     │options (JSON│  │score, level  │
-     │submission_id   │     │id (UUID)│ │     │correct_index│  │percentage    │
-     │content (Text)  │     │question │ │     │explanation  │  │analysis(JSON)│
-     │embedding       │     │answer_  │ │     │difficulty   │  │answers (JSON)│
-     │  (Vector 768)  │     │  hint   │ │     │concept      │  └──────────────┘
-     └────────────────┘     └─────────┘ │     └─────────────┘
-                                        │
-                               ┌────────▼────────┐
-                               │    templates    │
-                               ├─────────────────┤
-                               │ id (UUID, PK)   │
-                               │ name (String)   │
-                               │ college_scope   │
-                               │ layout_config   │
-                               └─────────────────┘
-```
-
----
-
-## 📡 REST API Reference
-
-### Authentication (`/api/v1/auth`)
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/auth/register` | Register student account with optional college logo upload |
-| `POST` | `/auth/login` | Authenticate user via OAuth2 form and receive JWT access token |
-| `GET` | `/auth/me` | Fetch authenticated user profile details |
-| `POST` | `/auth/forgot-password` | Rate-limited password reset request; delivers single-use token strictly via SMTP email |
-| `POST` | `/auth/reset-password` | Validate reset token, check password complexity, update hash |
-| `POST` | `/auth/change-password` | Authenticated password change with old password verification |
-
-### Lab Submissions (`/api/v1/submissions`)
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/submissions` | Create lab experiment submission and trigger PDF compiler |
-| `GET` | `/submissions` | List all lab submissions for authenticated user |
-| `GET` | `/submissions/{id}` | Retrieve specific lab submission status and metadata |
-| `DELETE`| `/submissions/{id}` | Delete submission, remove PDF file, and cascade delete tests/MCQs |
-| `GET` | `/submissions/{id}/view` | View inline rendered PDF for browser preview modal |
-| `GET` | `/submissions/{id}/download`| Direct attachment download of generated lab report PDF |
-
-### Lab Sessions & Semester Merge (`/api/v1/sessions`)
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/sessions` | Create a new subject/semester session grouping |
-| `GET` | `/sessions` | List user's lab sessions |
-| `GET` | `/sessions/{id}` | Get specific session and associated lab submissions |
-| `GET` | `/sessions/{id}/merge` | Merge all completed PDFs in a session into a course binder |
-
-### Code Execution (`/api/v1/execute`)
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/execute` | Authenticated runner (disabled on production host; delegates to isolated Piston runner when configured) |
-
-### RAG & Viva AI Tutor (`/api/v1/submissions`)
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/submissions/{id}/generate-questions` | Generate 5 viva questions via Gemini RAG with heuristic fallback |
-| `GET` | `/submissions/{id}/questions` | Retrieve cached viva questions for a lab submission |
-| `POST` | `/submissions/{id}/chat` | Interactive ChatGPT-style conversational viva practice session |
-
-### Adaptive MCQ Engine (`/api/v1`)
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/submissions/{id}/mcq/generate` | Synthesize 10–15 dynamic, non-repeating MCQs across difficulty tiers |
-| `GET` | `/submissions/{id}/mcq/tests` | List all MCQ tests generated for a submission |
-| `GET` | `/mcq/tests/{test_id}` | Retrieve test questions (answers hidden from public view) |
-| `POST` | `/mcq/tests/{test_id}/submit` | Submit answers, calculate score, evaluate strengths/weaknesses |
-| `GET` | `/mcq/tests/{test_id}/attempts` | List historical attempt summaries for a test |
-| `GET` | `/mcq/attempts/{attempt_id}` | Detailed attempt breakdown with question-by-question explanations |
-| `DELETE`| `/mcq/tests/{test_id}` | Delete an MCQ test and all associated attempt history |
-
-### Templates (`/api/v1/templates`)
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/templates` | List all available university PDF layout templates |
-| `GET` | `/templates/{id}` | Get template configuration and styling rules |
-
----
-
-## 📁 Repository Structure
+## 4. Repository and Component Structure
 
 ```text
 LabPilotAI/
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml                  # GitHub Actions CI (Ruff, pytest, tsc, vite build)
-│       └── deploy.yml              # Deployment workflow
+│       ├── ci.yml                  # Continuous integration (Ruff, pytest, tsc, vite build)
+│       └── deploy.yml              # Automated deployment pipeline
 ├── backend/
-│   ├── alembic/                    # Database schema migration versions
+│   ├── alembic/                    # Schema migration scripts
 │   │   ├── versions/
 │   │   │   ├── e1329459c1a0_initial_migration.py
 │   │   │   ├── 6aa81d5286be_add_vector_and_phase_3_models.py
@@ -357,84 +167,285 @@ LabPilotAI/
 │   │   └── env.py
 │   ├── app/
 │   │   ├── api/
-│   │   │   ├── deps.py             # Auth & DB dependency injection
+│   │   │   ├── deps.py             # Database and security dependency injection
 │   │   │   └── routes/
-│   │   │       ├── auth.py         # Login, register, forgot/reset password
-│   │   │       ├── execution.py    # Code execution sandbox
-│   │   │       ├── mcq.py          # Dynamic MCQ test generator & grading
-│   │   │       ├── rag.py          # RAG Viva question generation & interactive chat
-│   │   │       ├── sessions.py     # Session creation & PDF binder merging
-│   │   │       ├── submissions.py  # Lab experiment submission & PDF downloads
-│   │   │       └── templates.py    # Academic PDF templates
+│   │   │       ├── auth.py         # Registration, authentication, password reset
+│   │   │       ├── execution.py    # Code execution policy and runner interface
+│   │   │       ├── mcq.py          # MCQ test generation, submission, and analytics
+│   │   │       ├── rag.py          # RAG question generation and conversational chat
+│   │   │       ├── sessions.py     # Lab session management and binder merging
+│   │   │       ├── submissions.py  # Lab experiment ingestion and PDF endpoints
+│   │   │       └── templates.py    # Academic PDF template catalog
 │   │   ├── core/
-│   │   │   ├── database.py         # SQLAlchemy AsyncIO engine & sessionmaker
-│   │   │   └── seed.py             # Default template seeder
+│   │   │   ├── database.py         # AsyncIO database engine and session factory
+│   │   │   ├── rate_limit.py       # Sliding-window in-memory rate limiter
+│   │   │   └── seed.py             # Baseline template data seeder
 │   │   ├── models/
-│   │   │   └── models.py           # User, LabSession, Submission, DocumentChunk...
+│   │   │   └── models.py           # SQLAlchemy declarative ORM entities
 │   │   ├── schemas/
-│   │   │   └── schemas.py          # Pydantic request & response contracts
+│   │   │   └── schemas.py          # Pydantic v2 request/response contracts
 │   │   ├── services/
-│   │   │   ├── mcq_service.py      # Adaptive MCQ generation & diagnostics
-│   │   │   ├── merge_service.py    # PyPDF2 binder merging
-│   │   │   ├── pdf_service.py      # WeasyPrint, Pygments, & Jinja2 PDF engine
-│   │   │   ├── rag_service.py      # PDF text extractor, pgvector & Gemini RAG
-│   │   │   └── storage_service.py  # S3 / Cloudflare R2 / local disk handler
-│   │   ├── templates/              # Jinja2 university PDF HTML templates
+│   │   │   ├── mcq_service.py      # Diagnostic MCQ generation and scoring
+│   │   │   ├── merge_service.py    # Multi-PDF concatenation service
+│   │   │   ├── pdf_service.py      # WeasyPrint, Pygments, and Jinja2 pipeline
+│   │   │   ├── rag_service.py      # Semantic chunking, pgvector search, and tutoring
+│   │   │   └── storage_service.py  # S3, Cloudflare R2, and local storage provider
+│   │   ├── templates/              # Institutional PDF HTML layouts
 │   │   │   ├── generic_minimal.html
 │   │   │   └── nit_jalandhar_default.html
-│   │   └── main.py                 # FastAPI application factory & CORS setup
-│   ├── tests/                      # Pytest unit & integration test suites
-│   ├── Dockerfile                  # Production container definition (Python 3.12)
-│   ├── pyproject.toml              # Ruff, mypy, pytest configuration
+│   │   └── main.py                 # FastAPI application factory, CORS, and routing
+│   ├── tests/
+│   │   ├── integration/            # API integration tests
+│   │   └── unit/                   # Service-level unit tests
+│   ├── Dockerfile                  # Production container definition (Debian/Python 3.12)
+│   ├── pyproject.toml              # Ruff, mypy, and pytest configurations
 │   └── requirements.txt            # Python dependencies
 ├── frontend/
-│   ├── public/                     # Favicon, SVG logos, assets
+│   ├── public/                     # Static assets and site icons
 │   ├── src/
 │   │   ├── api/
 │   │   │   └── client.ts           # Type-safe API client with in-memory caching
 │   │   ├── components/
-│   │   │   ├── AuthForms.tsx       # Sign In, Registration, Forgot & Reset views
-│   │   │   ├── LabPilotLogo.tsx    # Bespoke SVG logo component
-│   │   │   └── PasswordRequirements.tsx # Real-time complexity validator
+│   │   │   ├── AuthForms.tsx       # Authentication, registration, and reset views
+│   │   │   ├── CustomSelect.tsx    # Accessible dropdown selector component
+│   │   │   ├── LabPilotLogo.tsx    # Vector logo component
+│   │   │   └── PasswordRequirements.tsx # Password complexity checklist component
 │   │   ├── contexts/
-│   │   │   ├── AuthContext.tsx     # JWT state management
-│   │   │   └── ThemeContext.tsx    # Dark/Light mode theme state
+│   │   │   ├── AuthContext.tsx     # JWT state management and token lifecycle
+│   │   │   └── ThemeContext.tsx    # Dark/light theme state and persistence
 │   │   ├── pages/
-│   │   │   ├── ChangePassword.tsx  # In-dashboard password updater
-│   │   │   ├── Dashboard.tsx       # Lab list, subject filters, preview & merge
-│   │   │   ├── MCQTest.tsx         # MCQ test generator, quiz runner & analytics
-│   │   │   ├── Profile.tsx         # Student profile & college crest view
-│   │   │   ├── SubmitLab.tsx       # Lab report editor, code runner & PDF preview
-│   │   │   └── VivaPrep.tsx        # Interactive conversational Viva AI examiner
-│   │   ├── App.tsx                 # Navigation, sidebar, drawer, route guards
-│   │   ├── index.css               # Design system tokens & global styling
-│   │   └── main.tsx                # React DOM entrypoint
+│   │   │   ├── ChangePassword.tsx  # In-session credential updater
+│   │   │   ├── Dashboard.tsx       # Lab report management, filters, and binder download
+│   │   │   ├── MCQTest.tsx         # Diagnostic quiz interface and analytics
+│   │   │   ├── Profile.tsx         # Student profile and institutional credentials
+│   │   │   ├── SubmitLab.tsx       # Lab report editor and compilation trigger
+│   │   │   └── VivaPrep.tsx        # Conversational oral examination simulator
+│   │   ├── App.tsx                 # Layout shell, navigation drawer, and router
+│   │   ├── index.css               # Design system definitions and CSS variables
+│   │   └── main.tsx                # Client DOM entrypoint
 │   ├── package.json
 │   ├── tailwind.config.js
 │   └── vite.config.ts
 ├── docs/
-│   └── FREE_DEPLOYMENT_GUIDE.md    # 100% Free deployment instructions
+│   └── FREE_DEPLOYMENT_GUIDE.md    # Production deployment documentation
 ├── infra/
-│   ├── docker-compose.yml          # PostgreSQL 16 (pgvector) + Redis 7
-│   └── main.tf                     # Terraform cloud infrastructure
-├── render.yaml                     # Render.com blueprint configuration
+│   ├── docker-compose.yml          # PostgreSQL 16 (pgvector) + Redis 7 infrastructure
+│   └── main.tf                     # Cloud infrastructure automation
+├── render.yaml                     # Render.com deployment blueprint
 ├── LICENSE                         # MIT License
 └── README.md
 ```
 
 ---
 
-## 🛠️ Local Development Walkthrough
+## 5. Database Schema and Data Models
 
-### Prerequisites
-- **Python 3.12+**
-- **Node.js 20+** & **npm**
-- **Docker Desktop** (for local PostgreSQL with `pgvector` & Redis)
-- **Windows Users**: Install [MSYS2](https://www.msys2.org/) with `mingw-w64-ucrt-x86_64-pango` for WeasyPrint rendering support.
+### Entity Relationship Structure
+The database uses PostgreSQL 16 with UUID primary keys and foreign key constraints:
+
+```text
+users (id PK)
+├── lab_sessions (id PK, user_id FK -> users.id)
+│   └── submissions (id PK, lab_session_id FK -> lab_sessions.id)
+├── submissions (id PK, user_id FK -> users.id, template_id FK -> templates.id)
+│   ├── document_chunks (id PK, submission_id FK -> submissions.id, embedding Vector(768))
+│   ├── viva_questions (id PK, submission_id FK -> submissions.id)
+│   └── mcq_tests (id PK, submission_id FK -> submissions.id, user_id FK -> users.id)
+│       ├── mcq_questions (id PK, test_id FK -> mcq_tests.id)
+│       └── mcq_attempts (id PK, test_id FK -> mcq_tests.id, user_id FK -> users.id)
+└── templates (id PK)
+```
+
+### Table Specifications
+
+#### `users`
+- `id` (UUID, Primary Key)
+- `email` (String, Unique, Indexed)
+- `password_hash` (String, BCrypt)
+- `name` (String)
+- `college` (String)
+- `college_logo` (Text, Base64 data URI, Nullable)
+- `roll_number` (String, Nullable)
+- `reset_token` (String, Nullable)
+- `reset_token_expires` (DateTime, Nullable)
+
+#### `submissions`
+- `id` (UUID, Primary Key)
+- `user_id` (UUID, Foreign Key -> `users.id`, Cascading Delete)
+- `lab_session_id` (UUID, Foreign Key -> `lab_sessions.id`, Nullable)
+- `template_id` (UUID, Foreign Key -> `templates.id`)
+- `aim` (Text)
+- `algorithm` (Text)
+- `code` (Text, stores raw code string or serialized multi-problem JSON)
+- `output` (Text)
+- `result` (Text)
+- `filename` (String, Unique per user)
+- `date_of_lab` (String, Nullable)
+- `subject_of_lab` (String, Nullable)
+- `subject_code` (String, Nullable)
+- `group_name` (String, Nullable)
+- `batch_name` (String, Nullable)
+- `teacher_name` (String, Nullable)
+- `include_logo` (Boolean, Default: True)
+- `status` (String: `pending`, `ready`, `failed`)
+- `pdf_url` (String, Nullable: S3 URI or local reference)
+- `created_at` (DateTime, Default: UTC Now)
+
+#### `document_chunks`
+- `id` (UUID, Primary Key)
+- `submission_id` (UUID, Foreign Key -> `submissions.id`, Cascading Delete)
+- `content` (Text, 1,000-character partition)
+- `embedding` (`Vector(768)`, indexed for Cosine similarity)
+
+#### `mcq_tests`
+- `id` (UUID, Primary Key)
+- `submission_id` (UUID, Foreign Key -> `submissions.id`, Cascading Delete)
+- `user_id` (UUID, Foreign Key -> `users.id`, Cascading Delete)
+- `title` (String)
+- `topic` (String, Nullable)
+- `total_questions` (Integer, Default: 10)
+- `created_at` (DateTime, Default: UTC Now)
+
+#### `mcq_questions`
+- `id` (UUID, Primary Key)
+- `test_id` (UUID, Foreign Key -> `mcq_tests.id`, Cascading Delete)
+- `order_index` (Integer)
+- `question_text` (Text)
+- `options` (JSON array of 4 choices)
+- `correct_index` (Integer: 0, 1, 2, or 3)
+- `explanation` (Text)
+- `difficulty` (String: `easy`, `medium`, `hard`)
+- `concept` (String)
+
+#### `mcq_attempts`
+- `id` (UUID, Primary Key)
+- `test_id` (UUID, Foreign Key -> `mcq_tests.id`, Cascading Delete)
+- `user_id` (UUID, Foreign Key -> `users.id`, Cascading Delete)
+- `score` (Integer)
+- `total_questions` (Integer)
+- `percentage` (Float)
+- `level` (String: `Mastery`, `Proficient`, `Intermediate`, `Beginner`)
+- `feedback` (Text)
+- `analysis` (JSON: concept breakdown, strengths, weaknesses, recommendations)
+- `selected_answers` (JSON: `{ question_id: option_index }`)
+- `created_at` (DateTime, Default: UTC Now)
 
 ---
 
-### 1. Clone Repository
+## 6. Core Engineering Subsystems
+
+### 6.1 Automated PDF Compilation Engine
+1. **Input Normalization**: Ingests either single experiments or JSON arrays containing multiple programming problems.
+2. **Lexical Tokenization**: Pygments identifies source language and generates HTML tokens matching a structured CSS color definition.
+3. **Template Compilation**: Jinja2 populates institutional templates (`nit_jalandhar_default.html`, `generic_minimal.html`) with student metadata, college logos, algorithmic steps, formatted code blocks, and execution outputs.
+4. **Paged Media Formatting**: WeasyPrint parses CSS Paged Media specifications (`@page`, running headers/footers, orphan/widow controls) and renders PDF documents.
+5. **Storage Dispatch**: Files are written to local disk storage (`storage/`) or dispatched to Cloudflare R2 / AWS S3 via Boto3.
+
+### 6.2 RAG Vector Indexing and Viva AI Tutor
+1. **Extraction and Chunking**: `PyPDF2` extracts plain text from generated PDF files. Documents are partitioned into 1,000-character contiguous semantic windows.
+2. **Vector Embeddings**: Each chunk is embedded through `gemini-embedding-001`, yielding a 768-dimensional float array stored in PostgreSQL `pgvector`.
+3. **Oral Exam Tutoring**: `/submissions/{id}/chat` initiates an interactive conversational examination grounded in the student's submission. Prompts strictly constrain mathematical notation to clean backticks and plain text, preventing raw LaTeX syntax errors.
+4. **Algorithmic Heuristics**: If the Gemini API is unreachable, a rule-based analyzer evaluates the code structure (detecting sorting algorithms, recursion, search loops, or trees) to produce grounded viva questions without external calls.
+
+### 6.3 Adaptive MCQ Diagnostic Generator
+1. **Non-Repeating Synthesis**: The generator queries existing question texts (`get_existing_question_texts`) associated with the lab submission to prevent duplicate questions on subsequent test runs.
+2. **Tiered Difficulty**: Distributes questions across Easy (syntax, expected output), Medium (algorithm tracing, branching), and Hard (boundary conditions, asymptotic analysis).
+3. **Automated Grading & Diagnostics**: Evaluates student submissions against correct indices, calculating aggregate accuracy, concept-specific accuracy percentages, strengths and weaknesses, and proficiency tiers.
+
+### 6.4 Security Architecture and Threat Mitigation
+
+#### Code Execution Policy
+- **Elimination of Host Arbitrary Execution**: Server-side subprocess execution (`subprocess.run` on python, g++, javac) is disabled by default in production (`ENABLE_SERVER_EXECUTION=false`). This prevents remote code execution (RCE), host environment variable inspection (`DATABASE_URL`, `GEMINI_API_KEY`, `SECRET_KEY`), and denial-of-service via resource exhaustion.
+- **External Sandbox Delegation**: Remote execution requests can be routed to an isolated, unprivileged container engine (e.g. private Piston or Judge0 instances via `PISTON_API_URL`).
+- **Stripped Environment in Testing**: If server execution is enabled in an isolated test container, the subprocess environment is strictly stripped (`PATH` and `LANG` only), eliminating access to credentials.
+- **Access Control and Throttling**: Execution requires valid JWT authentication (`Depends(get_current_user)`) and is throttled by a sliding-window rate limiter.
+
+#### Password Recovery Hardening
+- **Email-Only Token Delivery**: `/auth/forgot-password` dispatches single-use reset links exclusively through SMTP email. No tokens or URLs are returned in API response bodies.
+- **Host Header Poisoning Immunity**: The reset link is constructed solely using the trusted server-side `FRONTEND_URL` environment variable, ignoring client-supplied `Origin` or `Referer` headers.
+- **User Enumeration Defense**: The endpoint returns an identical generic response (`"If an account exists with this email address, a password reset link has been sent to your inbox."`) whether the email exists in the database or not.
+- **Sliding-Window Rate Limiting**: Enforces a strict limit (max 5 requests per 10 minutes per client IP) via `forgot_password_limiter` to protect against mail server flooding and brute force attacks.
+- **Single-Use Tokens**: Tokens are generated via `secrets.token_urlsafe(32)` with a 15-minute expiration time, and are nullified immediately upon password reset.
+
+### 6.5 Client-Side Architecture and Caching
+- **In-Memory Cache**: User profile data and template lists are stored in an in-memory cache to eliminate repetitive network roundtrips during navigation.
+- **Form Persistence**: Authentication switching cleanly purges residual error and status messages.
+- **Responsive Layout**: Desktop sidebar navigation collapses into a slide-out drawer on viewports below 768px.
+
+---
+
+## 7. REST API Reference
+
+### Authentication (`/api/v1/auth`)
+| Method | Endpoint | Auth Required | Description |
+| :--- | :--- | :---: | :--- |
+| `POST` | `/auth/register` | No | Creates student account with optional college logo upload |
+| `POST` | `/auth/login` | No | Authenticates credentials and returns JWT bearer token |
+| `GET` | `/auth/me` | Yes | Retrieves profile of currently authenticated user |
+| `POST` | `/auth/forgot-password` | No | Rate-limited password reset trigger; dispatches email |
+| `POST` | `/auth/reset-password` | No | Validates 15-minute token, verifies complexity, updates hash |
+| `POST` | `/auth/change-password` | Yes | Authenticated password change validating previous password |
+
+### Lab Submissions (`/api/v1/submissions`)
+| Method | Endpoint | Auth Required | Description |
+| :--- | :--- | :---: | :--- |
+| `POST` | `/submissions` | Yes | Ingests lab experiment and triggers PDF compilation |
+| `GET` | `/submissions` | Yes | Lists all laboratory records belonging to current user |
+| `GET` | `/submissions/{id}` | Yes | Retrieves submission status, metadata, and PDF URL |
+| `DELETE`| `/submissions/{id}` | Yes | Deletes record, unlinks PDF file, cascades associated tests |
+| `GET` | `/submissions/{id}/view` | No | In-browser inline PDF stream for modal preview |
+| `GET` | `/submissions/{id}/download` | No | Attachment stream with sanitized Content-Disposition header |
+
+### Sessions and Merging (`/api/v1/sessions`)
+| Method | Endpoint | Auth Required | Description |
+| :--- | :--- | :---: | :--- |
+| `POST` | `/sessions` | Yes | Creates a subject/semester course grouping |
+| `GET` | `/sessions` | Yes | Lists all sessions for current user |
+| `GET` | `/sessions/{id}` | Yes | Retrieves specific session and linked submissions |
+| `GET` | `/sessions/{id}/merge` | Yes | Concatenates all ready session PDFs into an indexed binder |
+
+### Code Execution (`/api/v1/execute`)
+| Method | Endpoint | Auth Required | Description |
+| :--- | :--- | :---: | :--- |
+| `POST` | `/execute` | Yes | Rate-limited code runner; delegates to external runner or fails safely |
+
+### RAG & Viva AI Tutor (`/api/v1/submissions`)
+| Method | Endpoint | Auth Required | Description |
+| :--- | :--- | :---: | :--- |
+| `POST` | `/submissions/{id}/generate-questions` | Yes | Generates 5 viva questions via Gemini RAG with fallback |
+| `GET` | `/submissions/{id}/questions` | Yes | Retrieves previously generated viva questions |
+| `POST` | `/submissions/{id}/chat` | Yes | Interactive viva examination tutoring conversation |
+
+### Adaptive MCQ Engine (`/api/v1`)
+| Method | Endpoint | Auth Required | Description |
+| :--- | :--- | :---: | :--- |
+| `POST` | `/submissions/{id}/mcq/generate` | Yes | Synthesizes 10–15 non-repeating diagnostic MCQs |
+| `GET` | `/submissions/{id}/mcq/tests` | Yes | Lists all MCQ tests generated for a lab report |
+| `GET` | `/mcq/tests/{test_id}` | Yes | Retrieves test questions (answers concealed) |
+| `POST` | `/mcq/tests/{test_id}/submit` | Yes | Evaluates answers, records score, returns analytics |
+| `GET` | `/mcq/tests/{test_id}/attempts` | Yes | Lists historical test attempt summaries |
+| `GET` | `/mcq/attempts/{attempt_id}` | Yes | Retrieves detailed attempt review with explanations |
+| `DELETE`| `/mcq/tests/{test_id}` | Yes | Deletes an MCQ test and associated attempt history |
+
+### Templates (`/api/v1/templates`)
+| Method | Endpoint | Auth Required | Description |
+| :--- | :--- | :---: | :--- |
+| `GET` | `/templates` | No | Lists available institutional layout templates |
+| `GET` | `/templates/{id}` | No | Retrieves template layout configuration |
+
+---
+
+## 8. Local Setup and Development
+
+### Prerequisites
+- Python 3.12 or higher
+- Node.js 20 or higher, with npm
+- Docker Desktop (for PostgreSQL with `pgvector` and Redis)
+- Windows Users: MSYS2 with `mingw-w64-ucrt-x86_64-pango` installed for WeasyPrint support
+
+---
+
+### Step 1: Clone Repository
 ```bash
 git clone https://github.com/Plash-Sharma/LabPilotAI.git
 cd LabPilotAI
@@ -442,21 +453,20 @@ cd LabPilotAI
 
 ---
 
-### 2. Start Infrastructure via Docker
-Launch the PostgreSQL database with `pgvector` extension and Redis broker:
+### Step 2: Launch Infrastructure (Docker)
+Start PostgreSQL (with `pgvector` pre-configured on port 5433) and Redis (on port 6379):
 ```bash
 cd infra
 docker-compose up -d
 cd ..
 ```
-*Port mappings: PostgreSQL is exposed on `localhost:5433`, Redis on `localhost:6379`.*
 
 ---
 
-### 3. Backend Configuration & Setup
+### Step 3: Backend Setup
 
-1. **Create and activate a virtual environment**:
-   ```powershell
+1. Create and activate a Python virtual environment:
+   ```bash
    # Windows (PowerShell)
    python -m venv .venv
    .venv\Scripts\Activate.ps1
@@ -466,150 +476,147 @@ cd ..
    source .venv/bin/activate
    ```
 
-2. **Install Python dependencies**:
+2. Install dependencies:
    ```bash
    pip install -r backend/requirements.txt
    ```
 
-3. *(Windows Users Only)* **Add GTK / Pango libraries to your PATH**:
+3. (Windows Only) Register Pango/Cairo binaries in system PATH:
    ```powershell
    $env:PATH = "C:\msys64\ucrt64\bin;" + $env:PATH
    ```
 
-4. **Set up Environment Variables**:
-   Create a `backend/.env` file:
+4. Configure environment:
+   Create `backend/.env`:
    ```ini
    DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5433/labpilotai
-   SECRET_KEY=local-dev-secret-key-change-in-production
+   SECRET_KEY=dev-secret-key-change-in-production
    ALGORITHM=HS256
    ACCESS_TOKEN_EXPIRE_MINUTES=10080
-   GEMINI_API_KEY=your_google_ai_studio_api_key_here
+   GEMINI_API_KEY=your_gemini_api_key_here
    GEMINI_MODEL=gemini-2.5-flash
    CORS_ORIGINS=http://localhost:5173,http://localhost:5174
-   USE_CELERY=false
+   FRONTEND_URL=http://localhost:5173
+   ENABLE_SERVER_EXECUTION=false
    ```
 
-5. **Apply Database Migrations & Seed Default Templates**:
+5. Apply database migrations and seed baseline templates:
    ```bash
    cd backend
    alembic upgrade head
    python -m app.core.seed
    ```
 
-6. **Start the FastAPI Development Server**:
+6. Start API server:
    ```bash
    uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
    ```
    - API Root: `http://localhost:8000`
-   - Interactive Swagger Documentation: `http://localhost:8000/docs`
+   - Swagger Documentation: `http://localhost:8000/docs`
 
 ---
 
-### 4. Frontend Configuration & Setup
+### Step 4: Frontend Setup
 
-1. **Open a new terminal and navigate to the frontend directory**:
+1. Install npm packages:
    ```bash
    cd frontend
    npm install
    ```
 
-2. **Set up Frontend Environment**:
-   Create a `frontend/.env` file:
+2. Configure environment:
+   Create `frontend/.env`:
    ```ini
    VITE_API_URL=http://localhost:8000/api/v1
    ```
 
-3. **Start the Vite Development Server**:
+3. Launch Vite development server:
    ```bash
    npm run dev
    ```
-   - Application URL: `http://localhost:5173`
+   - Application Interface: `http://localhost:5173`
 
 ---
 
-## ⚙️ Environment Variables Configuration
+## 9. Configuration and Environment Variables
 
-### Backend Options (`backend/.env`)
+### Backend Configuration (`backend/.env`)
 
-| Variable | Description | Required | Default / Example |
-| :--- | :--- | :---: | :--- |
-| `DATABASE_URL` | PostgreSQL connection string using `asyncpg` driver | **Yes** | `postgresql+asyncpg://postgres:postgres@localhost:5433/labpilotai` |
-| `SECRET_KEY` | Secret cryptographic key for signing JWT tokens | **Yes** | Minimum 32-character random string |
-| `ALGORITHM` | JWT signing algorithm | No | `HS256` |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | Token validity duration | No | `10080` (7 days) |
-| `GEMINI_API_KEY` | Google Gemini API key for RAG & MCQs | **Yes** | Obtain from [Google AI Studio](https://aistudio.google.com) |
-| `GEMINI_MODEL` | Gemini LLM model identifier | No | `gemini-2.5-flash` or `gemini-3.5-flash-lite` |
-| `CORS_ORIGINS` | Comma-separated list of allowed frontend origins | No | `http://localhost:5173,https://lab-pilot-ai.vercel.app` |
-| `FRONTEND_URL` | Base URL used to construct password reset links | No | `https://lab-pilot-ai.vercel.app` |
-| `USE_CELERY` | Enable background task offloading to Celery worker | No | `false` (uses FastAPI BackgroundTasks for free tier) |
-| `REDIS_URL` | Redis connection string for Celery broker | No | `redis://localhost:6379/0` |
-| `SMTP_HOST` | SMTP server host for sending password reset emails | No | `smtp.gmail.com` |
-| `SMTP_PORT` | SMTP port (typically 587 for TLS or 465 for SSL) | No | `587` |
-| `SMTP_USER` | SMTP username / sender email address | No | `noreply@labpilotai.com` |
-| `SMTP_PASSWORD` | SMTP password or Google App Password | No | `your-app-password` |
-| `SMTP_FROM` | Sender email address display | No | `noreply@labpilotai.com` |
-| `SMTP_TLS` | Enable TLS encryption for SMTP communication | No | `true` |
-| `S3_BUCKET_NAME` | Cloudflare R2 or AWS S3 bucket name | No | `labpilotai-pdfs` |
-| `S3_ENDPOINT_URL` | S3 API endpoint URL (for Cloudflare R2) | No | `https://<account-id>.r2.cloudflarestorage.com` |
-| `AWS_ACCESS_KEY_ID` | Cloudflare R2 / AWS Access Key ID | No | `your-r2-access-key` |
-| `AWS_SECRET_ACCESS_KEY` | Cloudflare R2 / AWS Secret Access Key | No | `your-r2-secret-key` |
-| `AWS_REGION` | Storage region | No | `auto` |
+| Variable | Required | Description | Default / Example |
+| :--- | :---: | :--- | :--- |
+| `DATABASE_URL` | Yes | PostgreSQL connection string (`asyncpg`) | `postgresql+asyncpg://postgres:postgres@localhost:5433/labpilotai` |
+| `SECRET_KEY` | Yes | Secret cryptographic key for JWT signing | 64-character random string |
+| `ALGORITHM` | No | JWT signing algorithm | `HS256` |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | No | Validity duration of access tokens | `10080` (7 days) |
+| `GEMINI_API_KEY` | Yes | Google Gemini API key for RAG & MCQs | Obtain from Google AI Studio |
+| `GEMINI_MODEL` | No | LLM model identifier | `gemini-2.5-flash` or `gemini-3.5-flash-lite` |
+| `CORS_ORIGINS` | No | Permitted CORS origins (comma-separated) | `http://localhost:5173,https://lab-pilot-ai.vercel.app` |
+| `FRONTEND_URL` | No | Trusted frontend base URL for reset links | `https://lab-pilot-ai.vercel.app` |
+| `ENABLE_SERVER_EXECUTION` | No | Enable server-side subprocess execution | `false` (Disabled for security) |
+| `PISTON_API_URL` | No | Isolated external Piston runner endpoint | `http://localhost:2000` |
+| `SMTP_HOST` | No | SMTP mail server hostname | `smtp.gmail.com` |
+| `SMTP_PORT` | No | SMTP port (587 TLS / 465 SSL) | `587` |
+| `SMTP_USER` | No | SMTP authentication username / address | `noreply@labpilotai.com` |
+| `SMTP_PASSWORD` | No | SMTP authentication password / token | `app-specific-password` |
+| `SMTP_FROM` | No | Sender display email | `noreply@labpilotai.com` |
+| `SMTP_TLS` | No | Enable TLS encryption | `true` |
+| `S3_BUCKET_NAME` | No | Cloudflare R2 / AWS S3 bucket name | `labpilotai-pdfs` |
+| `S3_ENDPOINT_URL` | No | Cloudflare R2 S3 endpoint URL | `https://<account-id>.r2.cloudflarestorage.com` |
+| `AWS_ACCESS_KEY_ID` | No | Cloudflare R2 / S3 access key ID | String |
+| `AWS_SECRET_ACCESS_KEY` | No | Cloudflare R2 / S3 secret access key | String |
+| `AWS_REGION` | No | Object storage region | `auto` |
 
-### Frontend Options (`frontend/.env`)
+### Frontend Configuration (`frontend/.env`)
 
-| Variable | Description | Required | Default |
-| :--- | :--- | :---: | :--- |
-| `VITE_API_URL` | Base URL of the backend API v1 | **Yes** | `http://localhost:8000/api/v1` |
+| Variable | Required | Description | Default |
+| :--- | :---: | :--- | :--- |
+| `VITE_API_URL` | Yes | Base URL of the backend API v1 endpoints | `http://localhost:8000/api/v1` |
 
 ---
 
-## 🧪 Testing & Quality Assurance
+## 10. Testing and Quality Assurance
 
-### Backend Test Suite
+### Run Backend Unit and Integration Tests
 ```bash
 cd backend
 
-# Run fast unit tests (no external services needed)
+# Execute unit tests
 pytest tests/unit/ -v
 
-# Run full test suite with coverage
+# Execute complete test suite with coverage reporting
 pytest tests/ -v --cov=app --cov-report=term-missing
 ```
 
-### Static Analysis & Linters
+### Static Analysis and Linting
 ```bash
-# Python linting and code style checks via Ruff
+# Python linting and formatting via Ruff
 cd backend
 ruff check .
 
 # Static type checking via Mypy
 mypy .
 
-# Frontend TypeScript verification & production bundle validation
+# Frontend TypeScript compilation and production bundle build check
 cd ../frontend
 npm run build
 ```
 
 ---
 
-## ☁️ Production Deployment
+## 11. Production Deployment Guide
 
-LabPilotAI is designed to run completely free across modern cloud providers:
+LabPilotAI is designed to run on zero-cost cloud tiers:
 
-| Layer | Provider | Free Tier Details |
-| :--- | :--- | :--- |
-| **Frontend** | [Vercel](https://vercel.com) | Unlimited Bandwidth, Global Edge CDN, Free SSL |
-| **Backend API** | [Render](https://render.com) | Free Docker Web Service (512MB RAM, Auto-Deploy on Git Push) |
-| **Database** | [Supabase](https://supabase.com) / [Neon](https://neon.tech) | 500 MB Free PostgreSQL with native `pgvector` support |
-| **PDF Storage** | [Cloudflare R2](https://www.cloudflare.com/products/r2/) | 10 GB Free Storage, **$0 Egress/Bandwidth Fees** |
-| **AI LLM** | [Google AI Studio](https://aistudio.google.com) | Free Gemini 2.5 Flash API allocation |
+- **Frontend Application**: Deployed to Vercel or Cloudflare Pages (Connected to `main` branch, build command: `npm run build`, output directory: `dist`).
+- **Backend API Web Service**: Deployed to Render or Railway via root `Dockerfile` using Python 3.12 slim bookworm with WeasyPrint system packages pre-installed.
+- **Database**: Managed PostgreSQL with native `pgvector` support hosted on Supabase or Neon.
+- **Object Storage**: S3-compatible, zero-egress PDF file storage on Cloudflare R2.
+- **AI Processing**: Google AI Studio Gemini API free tier.
 
-> 📖 **Complete Step-by-Step Walkthrough**: Read the comprehensive [**Free Deployment Guide**](./docs/FREE_DEPLOYMENT_GUIDE.md) to deploy your own production instance.
+For detailed cloud configuration instructions, refer to [docs/FREE_DEPLOYMENT_GUIDE.md](docs/FREE_DEPLOYMENT_GUIDE.md).
 
 ---
 
-## 📄 License & Author
+## 12. License
 
-Distributed under the **MIT License**. See [LICENSE](LICENSE) for more information.
-
-Developed with ❤️ by **[Plash Sharma](https://github.com/Plash-Sharma)**.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for terms.
