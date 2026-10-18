@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { clearCache } from '../api/client';
 
 interface AuthContextType {
   token: string | null;
@@ -23,7 +24,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [token]);
 
-  const logout = () => setToken(null);
+  const logout = () => {
+    clearCache();
+    setToken(null);
+  };
 
   return (
     <AuthContext.Provider value={{ token, setToken, logout }}>

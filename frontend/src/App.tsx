@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { useTheme } from './contexts/ThemeContext';
+import { api } from './api/client';
 import { AuthForms } from './components/AuthForms';
 import SubmitLab from './pages/SubmitLab';
 import Dashboard from './pages/Dashboard';
@@ -161,6 +162,13 @@ export default function App() {
   const { token } = useAuth();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { isDarkMode, toggleDarkMode } = useTheme();
+
+  useEffect(() => {
+    if (token) {
+      // Prefetch profile immediately in background so Profile page loads in 0ms
+      api.getMe().catch(() => {});
+    }
+  }, [token]);
 
   if (!token) {
     return <AuthForms />;

@@ -69,6 +69,10 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   };
   const res = await fetch(`${API_BASE}${endpoint}`, config);
   if (!res.ok) {
+    if (res.status === 401) {
+      clearCache();
+      localStorage.removeItem('token');
+    }
     const err = await res.text();
     throw new Error(`API error ${res.status}: ${err}`);
   }
@@ -172,6 +176,46 @@ interface CacheEntry<T> {
 
 const memoryCache = new Map<string, CacheEntry<any>>();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes fresh
+const USER_PROFILE_CACHE_KEY = 'labpilot_user_profile';
+
+export function getCachedUserProfile<T = any>(): T | null {
+  // 1. Check memory cache first
+  const mem = memoryCache.get('user_me');
+  if (mem && mem.data) {
+    return mem.data as T;
+  }
+  // 2. Check persistent localStorage so page reloads and tab switches are instant (0ms)
+  try {
+    const raw = localStorage.getItem(USER_PROFILE_CACHE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') {
+        memoryCache.set('user_me', { data: parsed, timestamp: Date.now() });
+        return parsed as T;
+      }
+    }
+  } catch (err) {
+    // Ignore JSON errors
+  }
+  return null;
+}
+
+export function setCachedUserProfile<T = any>(user: T): void {
+  if (!user) return;
+  memoryCache.set('user_me', { data: user, timestamp: Date.now() });
+  try {
+    localStorage.setItem(USER_PROFILE_CACHE_KEY, JSON.stringify(user));
+  } catch (err) {
+    // Ignore storage quota errors
+  }
+}
+
+export function clearUserProfileCache(): void {
+  memoryCache.delete('user_me');
+  try {
+    localStorage.removeItem(USER_PROFILE_CACHE_KEY);
+  } catch {}
+}
 
 export function getCachedData<T>(key: string): T | null {
   const entry = memoryCache.get(key);
@@ -189,11 +233,15 @@ export function setCachedData<T>(key: string, data: T): void {
 export function clearCache(keyPrefix?: string): void {
   if (!keyPrefix) {
     memoryCache.clear();
+    clearUserProfileCache();
   } else {
     for (const key of memoryCache.keys()) {
       if (key.startsWith(keyPrefix)) {
         memoryCache.delete(key);
       }
+    }
+    if (keyPrefix === 'user_me') {
+      clearUserProfileCache();
     }
   }
 }
@@ -215,23 +263,29 @@ export const api = {
     return request<{ access_token: string }>('/auth/register', { method: 'POST', body: JSON.stringify(body) });
   },
   getMe: async (force = false): Promise<any> => {
-    const cached = getCachedData<any>('user_me');
+    const cached = getCachedUserProfile<any>();
     if (cached && !force) {
-      // background refresh
-      request<any>('/auth/me').then((u) => setCachedData('user_me', u)).catch(() => {});
+      // background silent revalidation: keeps data fresh without blocking UI
+      request<any>('/auth/me').then((u) => {
+        if (u && u.email) setCachedUserProfile(u);
+      }).catch(() => {});
       return cached;
     }
     const res = await request<any>('/auth/me');
-    setCachedData('user_me', res);
+    if (res && res.email) {
+      setCachedUserProfile(res);
+    }
     return res;
   },
-  getCachedMe: (): any | null => getCachedData<any>('user_me'),
+  getCachedMe: (): any | null => getCachedUserProfile<any>(),
+  setCachedMe: (user: any): void => setCachedUserProfile(user),
+  clearUserProfileCache: (): void => clearUserProfileCache(),
 
   forgotPassword: (email: string) => request<any>('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
   resetPassword: (token: string, new_password: string) => request<any>('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, new_password }) }),
   changePassword: async (old_password: string, new_password: string) => {
     const res = await request<any>('/auth/change-password', { method: 'POST', body: JSON.stringify({ old_password, new_password }) });
-    clearCache('user_me');
+    clearUserProfileCache();
     return res;
   },
 

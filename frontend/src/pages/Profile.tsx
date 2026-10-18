@@ -8,7 +8,11 @@ export default function Profile() {
 
   useEffect(() => {
     api.getMe()
-      .then(res => setUser(res))
+      .then(res => {
+        if (res && res.email) {
+          setUser(res);
+        }
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -32,7 +36,7 @@ export default function Profile() {
         </div>
 
         <div className="p-6">
-          {loading ? (
+          {loading && !user ? (
             <div className="p-12 text-center text-gray-500 dark:text-gray-400 flex justify-center items-center">
               <RefreshCw className="w-5 h-5 mr-2 animate-spin text-blue-500" /> Loading profile...
             </div>

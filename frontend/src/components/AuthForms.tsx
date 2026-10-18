@@ -96,6 +96,7 @@ export function AuthForms() {
       if (isLogin) {
         const res = await api.login(email, password);
         setToken(res.access_token);
+        api.getMe().catch(() => {});
       } else {
         const pwError = getPasswordValidationError(password);
         if (pwError) {
@@ -111,7 +112,14 @@ export function AuthForms() {
           roll_number: rollNumber,
           college_logo: logoBase64 || undefined,
         });
+        api.setCachedMe({
+          email,
+          name,
+          college,
+          roll_number: rollNumber || null,
+        });
         setToken(res.access_token);
+        api.getMe().catch(() => {});
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || err.message || 'Authentication failed');
