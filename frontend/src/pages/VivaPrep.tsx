@@ -536,9 +536,6 @@ export default function VivaPrep() {
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center max-w-2xl mx-auto py-8">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-xl shadow-blue-500/25 mb-4">
-                <Sparkles className="w-8 h-8" />
-              </div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                 How can I help you ace your Viva?
               </h2>
