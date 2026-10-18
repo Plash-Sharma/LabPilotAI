@@ -165,8 +165,42 @@ export interface VivaChatResponse {
   suggested_prompts: string[];
 }
 
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+const memoryCache = new Map<string, CacheEntry<any>>();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes fresh
+
+export function getCachedData<T>(key: string): T | null {
+  const entry = memoryCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.timestamp < CACHE_TTL_MS) {
+    return entry.data as T;
+  }
+  return null;
+}
+
+export function setCachedData<T>(key: string, data: T): void {
+  memoryCache.set(key, { data, timestamp: Date.now() });
+}
+
+export function clearCache(keyPrefix?: string): void {
+  if (!keyPrefix) {
+    memoryCache.clear();
+  } else {
+    for (const key of memoryCache.keys()) {
+      if (key.startsWith(keyPrefix)) {
+        memoryCache.delete(key);
+      }
+    }
+  }
+}
+
 export const api = {
   login: (email: string, password: string) => {
+    clearCache();
     const formData = new URLSearchParams();
     formData.append('username', email);
     formData.append('password', password);
@@ -176,16 +210,60 @@ export const api = {
       body: formData.toString(),
     });
   },
-  register: (body: any) => request<{ access_token: string }>('/auth/register', { method: 'POST', body: JSON.stringify(body) }),
-  getMe: () => request<any>('/auth/me'),
+  register: (body: any) => {
+    clearCache();
+    return request<{ access_token: string }>('/auth/register', { method: 'POST', body: JSON.stringify(body) });
+  },
+  getMe: async (force = false): Promise<any> => {
+    const cached = getCachedData<any>('user_me');
+    if (cached && !force) {
+      // background refresh
+      request<any>('/auth/me').then((u) => setCachedData('user_me', u)).catch(() => {});
+      return cached;
+    }
+    const res = await request<any>('/auth/me');
+    setCachedData('user_me', res);
+    return res;
+  },
+  getCachedMe: (): any | null => getCachedData<any>('user_me'),
+
   forgotPassword: (email: string) => request<any>('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
   resetPassword: (token: string, new_password: string) => request<any>('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, new_password }) }),
-  changePassword: (old_password: string, new_password: string) => request<any>('/auth/change-password', { method: 'POST', body: JSON.stringify({ old_password, new_password }) }),
+  changePassword: async (old_password: string, new_password: string) => {
+    const res = await request<any>('/auth/change-password', { method: 'POST', body: JSON.stringify({ old_password, new_password }) });
+    clearCache('user_me');
+    return res;
+  },
 
-  getTemplates: () => request<Template[]>('/templates'),
-  getSubmissions: () => request<Submission[]>('/submissions'),
-  createSubmission: (body: SubmissionCreate) =>
-    request<Submission>('/submissions', { method: 'POST', body: JSON.stringify(body) }),
+  getTemplates: async (force = false): Promise<Template[]> => {
+    const cached = getCachedData<Template[]>('templates');
+    if (cached && !force) return cached;
+    const res = await request<Template[]>('/templates');
+    setCachedData('templates', res);
+    return res;
+  },
+  getCachedTemplates: (): Template[] | null => getCachedData<Template[]>('templates'),
+
+  getSubmissions: async (force = false): Promise<Submission[]> => {
+    const cached = getCachedData<Submission[]>('submissions');
+    if (cached && !force) {
+      // Background revalidation: fetch quietly so UI is always instantaneous
+      request<Submission[]>('/submissions').then((subs) => {
+        setCachedData('submissions', subs);
+      }).catch(() => {});
+      return cached;
+    }
+    const res = await request<Submission[]>('/submissions');
+    setCachedData('submissions', res);
+    return res;
+  },
+  getCachedSubmissions: (): Submission[] | null => getCachedData<Submission[]>('submissions'),
+
+  createSubmission: async (body: SubmissionCreate) => {
+    const res = await request<Submission>('/submissions', { method: 'POST', body: JSON.stringify(body) });
+    clearCache('submissions');
+    return res;
+  },
   getSubmission: (id: string) => request<Submission>(`/submissions/${id}`),
   downloadPdfUrl: (id: string, filename?: string | null) => {
     const cleanName = filename ? (filename.toLowerCase().endsWith('.pdf') ? filename : `${filename}.pdf`) : 'lab-report.pdf';
@@ -224,26 +302,54 @@ export const api = {
     }),
 
   // MCQ Test API
-  generateMCQTest: (submissionId: string, numQuestions: number = 10) =>
-    request<MCQTest>(`/submissions/${submissionId}/mcq/generate`, {
+  generateMCQTest: async (submissionId: string, numQuestions: number = 10) => {
+    const res = await request<MCQTest>(`/submissions/${submissionId}/mcq/generate`, {
       method: 'POST',
       body: JSON.stringify({ num_questions: numQuestions }),
-    }),
-  getSubmissionMCQTests: (submissionId: string) =>
-    request<MCQTest[]>(`/submissions/${submissionId}/mcq/tests`),
+    });
+    clearCache(`mcq_tests_${submissionId}`);
+    return res;
+  },
+  getSubmissionMCQTests: async (submissionId: string, force = false): Promise<MCQTest[]> => {
+    const key = `mcq_tests_${submissionId}`;
+    const cached = getCachedData<MCQTest[]>(key);
+    if (cached && !force) {
+      request<MCQTest[]>(`/submissions/${submissionId}/mcq/tests`).then((tests) => {
+        setCachedData(key, tests);
+      }).catch(() => {});
+      return cached;
+    }
+    const res = await request<MCQTest[]>(`/submissions/${submissionId}/mcq/tests`);
+    setCachedData(key, res);
+    return res;
+  },
+  getCachedSubmissionMCQTests: (submissionId: string): MCQTest[] | null => 
+    getCachedData<MCQTest[]>(`mcq_tests_${submissionId}`),
+
   getMCQTest: (testId: string) =>
     request<MCQTest>(`/mcq/tests/${testId}`),
-  submitMCQTest: (testId: string, selectedAnswers: Record<string, number>) =>
-    request<MCQAttempt>(`/mcq/tests/${testId}/submit`, {
+  submitMCQTest: async (testId: string, selectedAnswers: Record<string, number>) => {
+    const res = await request<MCQAttempt>(`/mcq/tests/${testId}/submit`, {
       method: 'POST',
       body: JSON.stringify({ selected_answers: selectedAnswers }),
-    }),
+    });
+    clearCache('mcq_tests_');
+    return res;
+  },
   getMCQTestAttempts: (testId: string) =>
     request<MCQAttemptSummary[]>(`/mcq/tests/${testId}/attempts`),
   getMCQAttempt: (attemptId: string) =>
     request<MCQAttempt>(`/mcq/attempts/${attemptId}`),
-  deleteSubmission: (id: string) =>
-    request<void>(`/submissions/${id}`, { method: 'DELETE' }),
-  deleteMCQTest: (testId: string) =>
-    request<void>(`/mcq/tests/${testId}`, { method: 'DELETE' }),
+  deleteSubmission: async (id: string) => {
+    const res = await request<void>(`/submissions/${id}`, { method: 'DELETE' });
+    clearCache('submissions');
+    clearCache(`mcq_tests_${id}`);
+    return res;
+  },
+  deleteMCQTest: async (testId: string) => {
+    const res = await request<void>(`/mcq/tests/${testId}`, { method: 'DELETE' });
+    clearCache('mcq_tests_');
+    return res;
+  },
 };
+

@@ -62,9 +62,16 @@ export default function MCQTestPage() {
   // URL or state param for preselecting submission
   const stateSubId = urlSubId || (location.state as any)?.submissionId;
 
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [selectedSubId, setSelectedSubId] = useState<string>(stateSubId || '');
+  const [currentUser, setCurrentUser] = useState<any>(() => api.getCachedMe());
+  const [submissions, setSubmissions] = useState<Submission[]>(() => {
+    const cached = api.getCachedSubmissions();
+    return cached ? cached.filter((s) => s.status === 'ready') : [];
+  });
+  const [selectedSubId, setSelectedSubId] = useState<string>(() => {
+    const targetId = urlSubId || stateSubId;
+    const cached = api.getCachedSubmissions()?.filter((s) => s.status === 'ready') || [];
+    return targetId && cached.some((s) => s.id === targetId) ? targetId : '';
+  });
   const [numQuestions, setNumQuestions] = useState<number>(10);
 
   // Active state

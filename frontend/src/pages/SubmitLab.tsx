@@ -42,8 +42,11 @@ interface Problem {
 export default function SubmitLab() {
   const navigate = useNavigate();
   const toast = useToast();
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [templateId, setTemplateId] = useState('');
+  const [templates, setTemplates] = useState<Template[]>(() => api.getCachedTemplates() || []);
+  const [templateId, setTemplateId] = useState(() => {
+    const cached = api.getCachedTemplates();
+    return cached && cached.length > 0 ? cached[0].id : '';
+  });
   const [problems, setProblems] = useState<Problem[]>([
     { id: Math.random().toString(36).substring(7), question: '', code: '', language: 'cpp', stdin: '', output: '' }
   ]);
@@ -62,7 +65,10 @@ export default function SubmitLab() {
   const [batchName, setBatchName] = useState('');
   const [teacherName, setTeacherName] = useState('');
   const [includeLogo, setIncludeLogo] = useState(true);
-  const [existingFiles, setExistingFiles] = useState<string[]>([]);
+  const [existingFiles, setExistingFiles] = useState<string[]>(() => {
+    const cached = api.getCachedSubmissions();
+    return cached ? cached.map((s) => (s.filename || '').trim().toLowerCase()).filter(Boolean) : [];
+  });
 
   useEffect(() => {
     api.getSubmissions()

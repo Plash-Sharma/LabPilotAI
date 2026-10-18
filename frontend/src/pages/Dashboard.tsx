@@ -21,8 +21,8 @@ import { useToast } from '../contexts/ToastContext';
 export default function Dashboard() {
   const navigate = useNavigate();
   const toast = useToast();
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [submissions, setSubmissions] = useState<Submission[]>(() => api.getCachedSubmissions() || []);
+  const [loading, setLoading] = useState<boolean>(() => !api.getCachedSubmissions());
   const [selectedPdf, setSelectedPdf] = useState<{ id: string; filename?: string | null } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; filename?: string | null } | null>(null);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);

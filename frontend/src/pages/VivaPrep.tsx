@@ -321,8 +321,15 @@ function renderInlineMarkdown(text: string) {
 export default function VivaPrep() {
   const location = useLocation();
   const toast = useToast();
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [selectedSubId, setSelectedSubId] = useState<string>('');
+  const [submissions, setSubmissions] = useState<Submission[]>(() => {
+    const cached = api.getCachedSubmissions();
+    return cached ? cached.filter(s => s.status === 'ready') : [];
+  });
+  const [selectedSubId, setSelectedSubId] = useState<string>(() => {
+    const routeSubId = location.state?.submissionId;
+    const cached = api.getCachedSubmissions()?.filter(s => s.status === 'ready') || [];
+    return routeSubId && cached.some(s => s.id === routeSubId) ? routeSubId : '';
+  });
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);

@@ -3,8 +3,8 @@ import { api } from '../api/client';
 import { User, Hash, Mail, Building2, RefreshCw, ShieldCheck } from 'lucide-react';
 
 export default function Profile() {
-  const [user, setUser] = useState<{name: string, email: string, college: string, roll_number: string | null} | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<{name: string, email: string, college: string, roll_number: string | null} | null>(() => api.getCachedMe());
+  const [loading, setLoading] = useState<boolean>(() => !api.getCachedMe());
 
   useEffect(() => {
     api.getMe()
