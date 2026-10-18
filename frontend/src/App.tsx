@@ -20,10 +20,10 @@ import {
   LogOut,
   Moon,
   Sun,
-  Computer,
   Menu,
   X,
 } from 'lucide-react';
+import { LabPilotLogo } from './components/LabPilotLogo';
 
 interface SidebarProps {
   isMobileOpen?: boolean;
@@ -49,9 +49,7 @@ function Sidebar({ isMobileOpen, onClose }: SidebarProps) {
       {/* Brand Header */}
       <div className="flex items-center justify-between px-6 h-16 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
-            <Computer className="w-5 h-5" />
-          </div>
+          <LabPilotLogo size="md" />
           <div className="flex flex-col">
             <span className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">LabPilotAI</span>
             <span className="text-[10px] uppercase font-semibold tracking-wider text-blue-600 dark:text-blue-400">Lab Suite</span>
@@ -191,10 +189,8 @@ export default function App() {
               >
                 <Menu className="w-5 h-5" />
               </button>
-              <div className="flex items-center space-x-2">
-                <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-sm shadow-blue-500/20">
-                  <Computer className="w-4 h-4" />
-                </div>
+              <div className="flex items-center space-x-2.5">
+                <LabPilotLogo size="sm" />
                 <span className="font-bold text-sm text-gray-900 dark:text-white tracking-tight">LabPilotAI</span>
               </div>
             </div>

@@ -3,7 +3,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { api } from '../api/client';
 import {
-  Computer,
   Mail,
   Lock,
   User,
@@ -16,6 +15,7 @@ import {
   Sun,
   Moon,
 } from 'lucide-react';
+import { LabPilotLogo } from './LabPilotLogo';
 import { PasswordRequirementsView, getPasswordValidationError } from './PasswordRequirements';
 
 export function AuthForms() {
@@ -241,8 +241,8 @@ export function AuthForms() {
       <div className="max-w-md w-full space-y-6 bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 transition-colors">
         {/* Brand Logo & Title */}
         <div className="text-center">
-          <div className="mx-auto w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white mb-3 shadow-lg shadow-blue-500/30">
-            <Computer className="w-6 h-6" />
+          <div className="flex justify-center mb-3">
+            <LabPilotLogo size="xl" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
             {isLogin ? 'Sign in to LabPilotAI' : 'Create Student Account'}
