@@ -792,12 +792,12 @@ export default function MCQTestPage() {
                       }
                     }}
                     options={submissions
-                      .filter((sub, idx, self) => idx === self.findIndex(s => (s.filename || s.id).trim().toLowerCase() === (sub.filename || sub.id).trim().toLowerCase()))
+                      .filter((sub, idx, self) => idx === self.findIndex(s => s.id === sub.id))
                       .map((sub) => ({
                         value: sub.id,
                         label: sub.filename || sub.subject_of_lab || 'Lab Submission',
                         description: [sub.subject_of_lab, sub.date_of_lab].filter(Boolean).join(' • ') || undefined,
-                        badge: sub.batch_name ? `Batch: ${sub.batch_name}` : undefined,
+                        badge: sub.subject_of_lab || (sub.batch_name ? `Batch: ${sub.batch_name}` : undefined),
                         icon: FileText,
                       }))}
                     placeholder="Select Lab Report / File"
@@ -810,6 +810,10 @@ export default function MCQTestPage() {
                     <p>
                       <span className="font-semibold text-gray-900 dark:text-white">File Name:</span>{' '}
                       <span className="text-gray-700 dark:text-gray-200">{selectedSubmission.filename || 'N/A'}</span>
+                    </p>
+                    <p>
+                      <span className="font-semibold text-gray-900 dark:text-white">Subject:</span>{' '}
+                      <span className="text-gray-700 dark:text-gray-200">{selectedSubmission.subject_of_lab || 'N/A'}</span>
                     </p>
                     <p>
                       <span className="font-semibold text-gray-900 dark:text-white">Teacher Name:</span>{' '}

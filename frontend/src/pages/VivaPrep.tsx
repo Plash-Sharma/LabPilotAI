@@ -460,36 +460,36 @@ export default function VivaPrep() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto flex flex-col h-[calc(100vh-6rem)]">
+    <div className="w-full flex-1 flex flex-col h-[calc(100vh-5rem)] md:h-[calc(100vh-6rem)]">
       {/* Top Header / Lab Selector Bar */}
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 shadow-sm mb-4 transition-colors">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
-              <Bot className="w-5 h-5" />
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 sm:p-5 shadow-sm mb-4 transition-colors">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex items-center space-x-3.5 min-w-0 flex-1">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 flex-shrink-0">
+              <Sparkles className="w-5 h-5 text-white flex-shrink-0" />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <div className="flex items-center space-x-2">
-                <h1 className="text-lg font-bold text-gray-900 dark:text-white">Viva AI Tutor & Oral Examiner</h1>
+                <h1 className="text-lg font-bold text-gray-900 dark:text-white truncate">Viva AI Tutor</h1>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                 Chat interactively with AI trained on your lab's aim, source code, and execution outputs.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 flex-shrink-0 w-full sm:w-auto">
             <div className="w-full sm:w-80">
               <CustomSelect
                 value={selectedSubId}
                 onChange={setSelectedSubId}
                 options={submissions
-                  .filter((sub, idx, self) => idx === self.findIndex(s => (s.filename || s.id).trim().toLowerCase() === (sub.filename || sub.id).trim().toLowerCase()))
+                  .filter((sub, idx, self) => idx === self.findIndex(s => s.id === sub.id))
                   .map(sub => ({
                     value: sub.id,
                     label: sub.filename || sub.subject_of_lab || 'Lab Report',
                     description: [sub.subject_of_lab, sub.date_of_lab].filter(Boolean).join(' • ') || undefined,
-                    badge: sub.batch_name ? `Batch: ${sub.batch_name}` : undefined,
+                    badge: sub.subject_of_lab || (sub.batch_name ? `Batch: ${sub.batch_name}` : undefined),
                     icon: FileText,
                   }))}
                 placeholder="Select Lab Report / File"
@@ -500,7 +500,7 @@ export default function VivaPrep() {
               <button
                 onClick={handleClearChat}
                 title="Clear conversation"
-                className="p-2 rounded-xl text-gray-400 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="p-2.5 rounded-xl text-gray-400 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex-shrink-0"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -509,10 +509,14 @@ export default function VivaPrep() {
         </div>
 
         {selectedSubmission && (
-          <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
+          <div className="mt-3.5 pt-3.5 border-t border-gray-100 dark:border-gray-800 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
             <div className="flex items-center space-x-1.5">
               <span className="font-semibold text-gray-900 dark:text-white">File Name:</span>
               <span className="text-gray-700 dark:text-gray-200 font-medium">{selectedSubmission.filename || 'N/A'}</span>
+            </div>
+            <div className="flex items-center space-x-1.5">
+              <span className="font-semibold text-gray-900 dark:text-white">Subject:</span>
+              <span className="text-gray-700 dark:text-gray-200 font-medium">{selectedSubmission.subject_of_lab || 'N/A'}</span>
             </div>
             <div className="flex items-center space-x-1.5">
               <span className="font-semibold text-gray-900 dark:text-white">Teacher Name:</span>
