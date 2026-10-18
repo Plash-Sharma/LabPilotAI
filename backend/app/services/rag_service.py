@@ -181,7 +181,7 @@ Lab Submission:
 
         candidates = [
             {
-                "question": f"What is the primary objective of this experiment ('{aim}'), and why is this approach chosen?",
+                "question": f"In the context of {subject}, what is the primary objective of this experiment ('{aim}'), and why is this approach chosen?",
                 "hint": f"Discuss the core concept of {aim}. Explain how your implementation solves the defined problem systematically and what specific goal it accomplishes.",
             },
             {
@@ -214,6 +214,18 @@ Lab Submission:
             candidates.insert(1, {
                 "question": "Is your sorting technique stable and in-place? Explain why stability matters in practical database systems.",
                 "hint": "A stable sort preserves the relative order of equal keys. Discuss whether your swap or partitioning logic maintains this property.",
+            })
+
+        if has_search:
+            candidates.insert(1, {
+                "question": "What is the search space and condition in your search algorithm, and when does it terminate early?",
+                "hint": "Analyze whether the search requires sorted elements (e.g. binary search O(log n)) or scans sequentially (linear search O(n)).",
+            })
+
+        if has_loops:
+            candidates.insert(1, {
+                "question": "Explain the termination condition and invariant for the loops used in your code.",
+                "hint": "Trace how index variables or boundary conditions change on each iteration to guarantee termination.",
             })
 
         if has_recursion:

@@ -78,6 +78,7 @@ async def async_process_pdf(submission_id_str: str) -> None:
 
 import sys
 
+
 @celery_app.task
 def process_submission_pdf(submission_id_str: str) -> None:
     """

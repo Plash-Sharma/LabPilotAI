@@ -8,7 +8,9 @@ import asyncio
 from sqlalchemy import select
 
 from app.core.database import AsyncSessionLocal, Base, engine
-from app.models import Template, User, Submission, LabSession, MCQTest, MCQAttempt, MCQQuestion, VivaQuestion
+from app.models import (
+    Template,
+)
 
 DEFAULT_TEMPLATES = [
     {

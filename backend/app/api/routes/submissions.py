@@ -12,7 +12,15 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db
-from app.models import Submission, Template, User, MCQTest, MCQAttempt, MCQQuestion, VivaQuestion
+from app.models import (
+    MCQAttempt,
+    MCQQuestion,
+    MCQTest,
+    Submission,
+    Template,
+    User,
+    VivaQuestion,
+)
 from app.schemas import SubmissionCreate, SubmissionResponse
 
 logger = logging.getLogger(__name__)
@@ -184,6 +192,7 @@ async def delete_submission(
 
 
 import urllib.parse
+
 from fastapi.responses import RedirectResponse, Response
 
 

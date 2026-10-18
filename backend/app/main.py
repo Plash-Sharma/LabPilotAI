@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 backend_env = Path(__file__).resolve().parent.parent / ".env"
@@ -31,6 +32,7 @@ app = FastAPI(
 )
 
 import os
+
 from fastapi.middleware.cors import CORSMiddleware
 
 # Allow local dev ports and production origins

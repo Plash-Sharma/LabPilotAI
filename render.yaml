@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: labpilotai-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: USE_CELERY
+        value: "false"
+      - key: DATABASE_URL
+        sync: false # Set with your free Supabase or Neon PostgreSQL connection string
+      - key: GEMINI_API_KEY
+        sync: false # Set with your Google AI Studio Gemini API Key
+      - key: SECRET_KEY
+        generateValue: true # Render generates a secure random secret key automatically
+      - key: CORS_ORIGINS
+        sync: false # Set with your Vercel frontend URL, e.g., https://your-app.vercel.app
+      - key: S3_BUCKET_NAME
+        sync: false
+      - key: S3_ENDPOINT_URL
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false

@@ -354,23 +354,3 @@ async def get_attempt_details(
         created_at=attempt.created_at,
     )
 
-
-@router.delete("/mcq/tests/{test_id}", status_code=204)
-async def delete_mcq_test(
-    test_id: UUID,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-) -> None:
-    """Delete an MCQ test and all associated questions and attempts."""
-    test = await db.get(MCQTest, test_id)
-    if not test:
-        raise HTTPException(status_code=404, detail="MCQ Test not found")
-    if test.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to delete this test")
-
-    # Delete attempts, questions, and test
-    await db.execute(delete(MCQAttempt).where(MCQAttempt.test_id == test_id))
-    await db.execute(delete(MCQQuestion).where(MCQQuestion.test_id == test_id))
-    await db.delete(test)
-    await db.commit()
-

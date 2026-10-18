@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 from typing import AsyncGenerator
 
@@ -9,8 +10,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import AsyncSessionLocal
 from app.models import User
-
-import os
 
 SECRET_KEY = os.getenv("SECRET_KEY", "supersecretkey_change_in_production")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")

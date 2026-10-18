@@ -6,8 +6,8 @@ On Linux CI it works natively.
 """
 import uuid
 from pathlib import Path
-
 from typing import Generator
+
 import pytest
 
 from app.services.pdf_service import STORAGE_DIR, generate_pdf

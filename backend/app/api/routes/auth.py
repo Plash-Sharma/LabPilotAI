@@ -1,3 +1,6 @@
+import re
+import secrets
+from datetime import datetime, timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -6,11 +9,13 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from datetime import datetime, timedelta
-import re
-import secrets
-from app.api.deps import get_current_user
-from app.api.deps import create_access_token, get_db, get_password_hash, verify_password
+from app.api.deps import (
+    create_access_token,
+    get_current_user,
+    get_db,
+    get_password_hash,
+    verify_password,
+)
 from app.models import User
 
 router = APIRouter(tags=["auth"])

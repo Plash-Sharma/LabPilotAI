@@ -1,21 +1,65 @@
-name: Deploy
+name: CD Deployment (Free Tier)
+
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  deploy-backend:
+    name: Deploy Backend (Render)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: aws-actions/configure-aws-credentials@v4
+      - name: Trigger Render Deploy Hook
+        if: ${{ env.RENDER_DEPLOY_HOOK_URL != '' }}
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          echo "Triggering Render automated deployment..."
+          HTTP_STATUS=$(curl -s -o response.json -w "%{http_code}" -X POST "$RENDER_DEPLOY_HOOK_URL")
+          echo "Render HTTP Response Status: $HTTP_STATUS"
+          cat response.json
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+            echo -e "\n✅ Render deployment successfully triggered!"
+          else
+            echo -e "\n❌ Failed to trigger Render deployment. Status: $HTTP_STATUS"
+            exit 1
+          fi
+
+      - name: Render Deploy Hook Notice
+        if: ${{ env.RENDER_DEPLOY_HOOK_URL == '' }}
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          echo "ℹ️ Note: RENDER_DEPLOY_HOOK_URL secret is not set in GitHub repository secrets."
+          echo "If Render is connected to your GitHub repository via Auto-Deploy, it deploys automatically on push."
+          echo "To trigger deployments from this action, add RENDER_DEPLOY_HOOK_URL to Settings -> Secrets and variables -> Actions."
+
+  deploy-frontend:
+    name: Deploy Frontend (Vercel)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
+        if: ${{ env.VERCEL_TOKEN != '' }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        uses: amondnet/vercel-action@v25
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1
-      - uses: aws-actions/amazon-ecr-login@v2
-      - run: |
-          docker build -t $ECR_REGISTRY/labpilotai-backend:$GITHUB_SHA ./backend
-          docker push $ECR_REGISTRY/labpilotai-backend:$GITHUB_SHA
-      - name: Deploy to ECS / update EC2 via SSM
-        run: ./infra/scripts/deploy.sh $GITHUB_SHA
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./frontend
+
+      - name: Vercel Deploy Notice
+        if: ${{ env.VERCEL_TOKEN == '' }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          echo "ℹ️ Note: VERCEL_TOKEN secret is not set."
+          echo "If Vercel is connected directly to your GitHub repository, it deploys automatically upon every push to main!"

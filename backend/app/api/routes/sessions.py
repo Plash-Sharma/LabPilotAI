@@ -52,6 +52,7 @@ async def list_sessions(
 
 from fastapi.responses import FileResponse
 
+
 @router.get("/{session_id}/merge")
 async def merge_session_pdfs(
     session_id: UUID,
@@ -66,8 +67,9 @@ async def merge_session_pdfs(
     await db.refresh(session, ["submissions"])
     
     # We only merge local files for now (Phase 4). If using S3, we'd download them first.
-    from app.services.merge_service import merge_pdfs
     from pathlib import Path
+
+    from app.services.merge_service import merge_pdfs
     
     storage_dir = Path(__file__).parent.parent.parent.parent / "storage"
     pdf_paths = []

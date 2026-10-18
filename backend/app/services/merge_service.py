@@ -1,6 +1,6 @@
 import logging
 import os
-from pathlib import Path
+
 from PyPDF2 import PdfMerger
 
 logger = logging.getLogger(__name__)
