@@ -20,6 +20,7 @@ from app.api.deps import (
     get_password_hash,
     verify_password,
 )
+from app.core.rate_limit import forgot_password_limiter, get_client_ip
 from app.models import User
 
 router = APIRouter(tags=["auth"])
@@ -167,8 +168,16 @@ def send_password_reset_email(to_email: str, reset_link: str) -> bool:
 class ForgotPassword(BaseModel):
     email: str
 
+GENERIC_RESET_MSG = "If an account exists with this email address, a password reset link has been sent to your inbox."
+
 @router.post("/forgot-password")
 async def forgot_password(body: ForgotPassword, request: Request, db: AsyncSession = Depends(get_db)):
+    # 1. Enforce rate limiting per client IP to mitigate abuse and email flooding
+    forgot_password_limiter.check(
+        get_client_ip(request),
+        custom_message="Too many password reset requests. Please wait a few minutes before trying again."
+    )
+
     stmt = select(User).where(User.email == body.email)
     user = (await db.execute(stmt)).scalars().first()
     if user:
@@ -177,24 +186,16 @@ async def forgot_password(body: ForgotPassword, request: Request, db: AsyncSessi
         user.reset_token_expires = datetime.utcnow() + timedelta(minutes=15)
         await db.commit()
 
-        origin = request.headers.get("origin") or request.headers.get("referer")
-        if origin:
-            base_url = origin.split("?")[0].rstrip("/")
-            for subpath in ("/reset-password", "/forgot", "/login", "/dashboard", "/create", "/viva", "/mcq", "/profile", "/change-password"):
-                if base_url.endswith(subpath):
-                    base_url = base_url[:-len(subpath)].rstrip("/")
-        else:
-            base_url = os.getenv("FRONTEND_URL", "https://lab-pilot-ai.vercel.app")
+        # 2. Prevent Host Header / Reset-Link poisoning: strictly use configured FRONTEND_URL
+        frontend_url = os.getenv("FRONTEND_URL", "https://lab-pilot-ai.vercel.app").rstrip("/")
+        reset_link = f"{frontend_url}/reset-password?token={token}"
 
-        reset_link = f"{base_url}/reset-password?token={token}"
+        # 3. Deliver token ONLY via email
         send_password_reset_email(user.email, reset_link)
 
-        return {
-            "msg": "Password reset email sent",
-            "token": token,
-            "reset_url": reset_link
-        }
-    return {"msg": "Password reset email sent"}
+    # 4. Return identical generic message to prevent account enumeration
+    # Never return the token or reset_url in the API response
+    return {"msg": GENERIC_RESET_MSG}
 
 class ResetPassword(BaseModel):
     token: str

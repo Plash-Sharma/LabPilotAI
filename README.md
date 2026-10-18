@@ -34,9 +34,9 @@
   - [1. Automated University Lab Report Generation](#1-automated-university-lab-report-generation)
   - [2. AI-Powered Viva Tutor & Oral Examiner (RAG)](#2-ai-powered-viva-tutor--oral-examiner-rag)
   - [3. Adaptive MCQ Knowledge Testing Engine](#3-adaptive-mcq-knowledge-testing-engine)
-  - [4. Code Execution Sandbox](#4-code-execution-sandbox)
+  - [4. Code Execution Policy & Sandboxing](#4-code-execution-policy--sandboxing)
   - [5. Unified Student Dashboard & Multi-Lab Merge](#5-unified-student-dashboard--multi-lab-merge)
-  - [6. Enterprise-Grade Security & Account Recovery](#6-enterprise-grade-security--account-recovery)
+  - [6. Authentication & Account Security](#6-authentication--account-security)
   - [7. Modern Responsive UI & Design Aesthetics](#7-modern-responsive-ui--design-aesthetics)
 - [Complete Technology Stack](#-complete-technology-stack)
 - [Data Models & Schema Architecture](#-data-models--schema-architecture)
@@ -156,10 +156,11 @@ flowchart TD
   - Concept-by-concept accuracy breakdown.
   - Identification of primary strengths and critical weaknesses with targeted study recommendations.
 
-### 4. Code Execution Sandbox
-- **In-Browser Execution**: Integrated code runner supporting **Python**, **C++ (g++)**, and **Java (javac/java)** directly inside the lab submission interface.
-- **Isolated Subprocess Execution**: Sandboxed script creation with input stream (`stdin`) feeding, strict 10-second timeout enforcement, and captured `stdout`/`stderr`.
-- **Auto-Fill Outputs**: One-click transfer of execution results directly into the lab report's *Observed Output* field.
+### 4. Code Execution Policy & Sandboxing
+- **Production Defense-in-Depth**: Direct server-side arbitrary code execution is strictly disabled by default (`ENABLE_SERVER_EXECUTION=false`) on production application servers to eliminate remote code execution (RCE) vectors, host environment secret leakage (`GEMINI_API_KEY`, `DATABASE_URL`, `SECRET_KEY`, `AWS_ACCESS_KEY_ID`), and denial-of-service risks.
+- **Standard Student Workflow**: Students execute programs in their local IDE or compiler and paste the verified terminal output directly into the report editor.
+- **Isolated Runner Integration**: When remote execution is required, `/execute` delegates to an external unprivileged container runner (such as private Piston or Judge0 instances via `PISTON_API_URL`) running with zero host access and stripped environments.
+- **Access Controls & Rate Limiting**: Code execution endpoints require user authentication (`get_current_user`) and enforce sliding-window rate limiting.
 
 ### 5. Unified Student Dashboard & Multi-Lab Merge
 - **Multi-Dimension Filtering**: Real-time client-side search by filename, aim, or subject dropdown.
@@ -168,14 +169,15 @@ flowchart TD
 - **One-Click Downloads**: Direct downloads with sanitized, encoded Content-Disposition filenames via `/submissions/{id}/download`.
 - **Direct Action Links**: Quick navigation to launch a Viva session or MCQ test directly from any lab card.
 
-### 6. Enterprise-Grade Security & Account Recovery
+### 6. Authentication & Account Security
 - **Cryptographic Authentication**: JWT access tokens signed with `HS256` and password hashing utilizing `bcrypt`.
 - **Enforced Password Complexity**: Real-time validation requiring ≥8 characters, uppercase, lowercase, numbers, and special symbols (`!@#$%^&*`).
-- **Complete Forgot & Reset Password Sequence**:
-  - Generates cryptographically secure 32-byte tokens with 15-minute expiration.
-  - Automated HTML email dispatching using Python's standard `smtplib` and `MIMEMultipart`.
-  - Smart URL builder utilizing request origin and referer headers.
-  - Dedicated `/reset-password?token=...` UI with direct fallback links for rapid testing and production resilience.
+- **Hardened Password Recovery**:
+  - **Email-Only Delivery**: Reset tokens are delivered strictly via SMTP email to the account's verified address. No tokens or reset links are ever exposed in API responses.
+  - **Host Header Poisoning Immunity**: Reset links strictly utilize the immutable server-side `FRONTEND_URL` environment variable, ignoring spoofable client `Origin` or `Referer` headers.
+  - **Enumeration Defense**: Returns an identical generic confirmation message regardless of whether the email exists in the database.
+  - **Sliding-Window Rate Limiting**: Built-in IP-level rate limiting throttles requests (max 5 requests per 10 minutes) to prevent email spamming and abuse.
+  - **Single-Use Cryptographic Tokens**: High-entropy 32-byte tokens with strict 15-minute expiration times, invalidated immediately upon use.
 - **Student Profile Management**: Pre-cached user profile with college name, roll number, and custom crest/logo base64 storage.
 
 ### 7. Modern Responsive UI & Design Aesthetics
@@ -283,7 +285,7 @@ flowchart TD
 | `POST` | `/auth/register` | Register student account with optional college logo upload |
 | `POST` | `/auth/login` | Authenticate user via OAuth2 form and receive JWT access token |
 | `GET` | `/auth/me` | Fetch authenticated user profile details |
-| `POST` | `/auth/forgot-password` | Generate reset token, send SMTP email, and return reset link |
+| `POST` | `/auth/forgot-password` | Rate-limited password reset request; delivers single-use token strictly via SMTP email |
 | `POST` | `/auth/reset-password` | Validate reset token, check password complexity, update hash |
 | `POST` | `/auth/change-password` | Authenticated password change with old password verification |
 
@@ -305,10 +307,10 @@ flowchart TD
 | `GET` | `/sessions/{id}` | Get specific session and associated lab submissions |
 | `GET` | `/sessions/{id}/merge` | Merge all completed PDFs in a session into a course binder |
 
-### Code Execution Sandbox (`/api/v1/execute`)
+### Code Execution (`/api/v1/execute`)
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `POST` | `/execute` | Run Python, C++, or Java code safely with timeout and return stdout/stderr |
+| `POST` | `/execute` | Authenticated runner (disabled on production host; delegates to isolated Piston runner when configured) |
 
 ### RAG & Viva AI Tutor (`/api/v1/submissions`)
 | Method | Endpoint | Description |

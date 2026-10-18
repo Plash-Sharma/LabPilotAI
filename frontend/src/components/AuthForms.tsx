@@ -34,7 +34,6 @@ export function AuthForms() {
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
-  const [resetDirectUrl, setResetDirectUrl] = useState('');
 
   const urlParams = new URLSearchParams(window.location.search);
   const resetToken = urlParams.get('token');
@@ -87,13 +86,9 @@ export function AuthForms() {
     setLoading(true);
     setError('');
     setMsg('');
-    setResetDirectUrl('');
     try {
       const res = await api.forgotPassword(email);
-      setMsg(res.msg || 'Password reset email sent');
-      if (res.token) {
-        setResetDirectUrl(`/reset-password?token=${res.token}`);
-      }
+      setMsg(res.msg || 'If an account exists with this email address, a password reset link has been sent to your inbox.');
     } catch (err: any) {
       setError(err.detail || err.message || 'Failed to send reset email');
     } finally {
@@ -279,18 +274,8 @@ export function AuthForms() {
           <form className="mt-6 space-y-4" onSubmit={handleForgotSubmit}>
             {error && <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-300 text-xs">{error}</div>}
             {msg && (
-              <div className="p-3.5 rounded-xl bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-900 text-green-700 dark:text-green-300 text-xs space-y-2">
+              <div className="p-3.5 rounded-xl bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-900 text-green-700 dark:text-green-300 text-xs">
                 <div className="font-medium">{msg}</div>
-                {resetDirectUrl && (
-                  <div className="pt-2 border-t border-green-200/60 dark:border-green-800/60">
-                    <a
-                      href={resetDirectUrl}
-                      className="inline-flex items-center text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-                    >
-                      Click here to set your new password &rarr;
-                    </a>
-                  </div>
-                )}
               </div>
             )}
             <div className="relative">
@@ -318,7 +303,6 @@ export function AuthForms() {
                   setIsForgot(false);
                   setError('');
                   setMsg('');
-                  setResetDirectUrl('');
                 }}
                 className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
               >
@@ -453,7 +437,6 @@ export function AuthForms() {
                 setIsLogin(!isLogin);
                 setError('');
                 setMsg('');
-                setResetDirectUrl('');
               }}
               className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
             >
@@ -466,7 +449,6 @@ export function AuthForms() {
                   setIsForgot(true);
                   setError('');
                   setMsg('');
-                  setResetDirectUrl('');
                 }}
                 className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               >

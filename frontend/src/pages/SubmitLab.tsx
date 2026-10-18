@@ -138,9 +138,14 @@ export default function SubmitLab() {
         output: data.stderr ? `Error:\n${data.stderr}\n\nOutput:\n${data.stdout || ''}` : (data.stdout || '')
       };
       setProblems(newProbsAfter);
-    } catch (err) {
+    } catch (err: any) {
       const newProbsErr = [...problems];
-      newProbsErr[index] = { ...newProbsErr[index], isExecuting: false, output: `Execution failed: ${err}` };
+      const errMsg = err?.message || String(err);
+      newProbsErr[index] = { 
+        ...newProbsErr[index], 
+        isExecuting: false, 
+        output: newProbsErr[index].output || `Note: ${errMsg}\nPlease run your code in your local IDE, then paste the verified output.` 
+      };
       setProblems(newProbsErr);
     }
   };
