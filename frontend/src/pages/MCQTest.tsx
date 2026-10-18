@@ -791,16 +791,24 @@ export default function MCQTestPage() {
                         setSearchParams({}, { replace: true });
                       }
                     }}
-                    options={submissions
-                      .filter((sub, idx, self) => idx === self.findIndex(s => s.id === sub.id))
-                      .map((sub) => ({
-                        value: sub.id,
-                        label: sub.filename || sub.subject_of_lab || 'Lab Submission',
-                        description: [sub.subject_of_lab, sub.date_of_lab].filter(Boolean).join(' • ') || undefined,
-                        badge: sub.subject_of_lab || (sub.batch_name ? `Batch: ${sub.batch_name}` : undefined),
+                    options={[
+                      {
+                        value: '',
+                        label: 'Select File / Lab Report',
+                        description: 'Clear selection and return to default state',
                         icon: FileText,
-                      }))}
-                    placeholder="Select Lab Report / File"
+                      },
+                      ...submissions
+                        .filter((sub, idx, self) => idx === self.findIndex(s => s.id === sub.id))
+                        .map((sub) => ({
+                          value: sub.id,
+                          label: sub.filename || sub.subject_of_lab || 'Lab Submission',
+                          description: [sub.subject_of_lab, sub.date_of_lab].filter(Boolean).join(' • ') || undefined,
+                          badge: sub.subject_of_lab || (sub.batch_name ? `Batch: ${sub.batch_name}` : undefined),
+                          icon: FileText,
+                        }))
+                    ]}
+                    placeholder="Select File / Lab Report"
                     emptyMessage="No lab reports found. Create one first!"
                   />
                 </div>

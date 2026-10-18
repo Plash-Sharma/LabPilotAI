@@ -124,7 +124,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         } text-gray-900 dark:text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500`}
       >
         <div className="flex items-center space-x-2 truncate min-w-0 flex-1 mr-2">
-          {selectedOption ? (
+          {selectedOption && selectedOption.value ? (
             <>
               {selectedOption.icon && (
                 <selectedOption.icon
