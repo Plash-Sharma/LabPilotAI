@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563EB" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+    <linearGradient id="screenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#1E293B" />
+    </linearGradient>
+    <linearGradient id="sparkleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60A5FA" />
+      <stop offset="100%" stop-color="#38BDF8" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background rounded squircle -->
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#bgGrad)" />
+  <rect x="2.75" y="2.75" width="58.5" height="58.5" rx="15.25" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="1.5" />
+
+  <!-- Computer monitor base / stand -->
+  <path d="M25 47h14 M32 40v7" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" />
+
+  <!-- Computer monitor body -->
+  <rect x="13" y="15" width="38" height="26" rx="5" fill="#FFFFFF" fill-opacity="0.12" stroke="#FFFFFF" stroke-width="2.5" />
+
+  <!-- Screen inside -->
+  <rect x="16.5" y="18.5" width="31" height="19" rx="2.5" fill="url(#screenGrad)" />
+
+  <!-- Code / Lab Pulse on screen -->
+  <path d="M21 24h9 M21 28h15 M21 32h7" stroke="#60A5FA" stroke-width="2" stroke-linecap="round" />
+
+  <!-- AI Lab Sparkle (Top-Right) -->
+  <path d="M48 8c.5 3 2.5 5 5.5 5.5-3 .5-5 2.5-5.5 5.5-.5-3-2.5-5-5.5-5.5 3-.5 5-2.5 5.5-5.5z" fill="url(#sparkleGrad)" />
+  <circle cx="41" cy="9" r="1.5" fill="#93C5FD" />
+</svg>
