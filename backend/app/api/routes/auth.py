@@ -1,9 +1,13 @@
+import os
 import re
 import secrets
+import smtplib
 from datetime import datetime, timedelta
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -98,21 +102,99 @@ async def get_me(current_user: User = Depends(get_current_user)):
         roll_number=current_user.roll_number
     )
 
+def send_password_reset_email(to_email: str, reset_link: str) -> bool:
+    smtp_host = os.getenv("SMTP_HOST") or os.getenv("MAIL_SERVER")
+    smtp_port_raw = os.getenv("SMTP_PORT") or os.getenv("MAIL_PORT") or "587"
+    smtp_user = os.getenv("SMTP_USER") or os.getenv("MAIL_USERNAME")
+    smtp_password = os.getenv("SMTP_PASSWORD") or os.getenv("MAIL_PASSWORD")
+    smtp_from = os.getenv("SMTP_FROM") or os.getenv("MAIL_FROM") or smtp_user or "noreply@labpilotai.com"
+    use_tls = os.getenv("SMTP_TLS", "true").lower() in ("true", "1", "yes")
+
+    if not smtp_host or not smtp_user or not smtp_password:
+        return False
+
+    try:
+        smtp_port = int(smtp_port_raw)
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = "LabPilotAI - Password Reset Request"
+        msg["From"] = f"LabPilotAI <{smtp_from}>"
+        msg["To"] = to_email
+
+        text_content = (
+            f"Hello,\n\n"
+            f"You requested a password reset for your LabPilotAI account.\n"
+            f"Click the link below to set a new password:\n{reset_link}\n\n"
+            f"This link is valid for 15 minutes. If you did not request this, please ignore this email.\n\n"
+            f"Best regards,\nLabPilotAI Team"
+        )
+
+        html_content = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 580px; margin: 0 auto; padding: 24px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <h1 style="color: #2563eb; margin: 0; font-size: 24px; font-weight: bold;">LabPilotAI</h1>
+                <p style="color: #6b7280; font-size: 13px; margin-top: 4px;">Automated Lab Documentation & Viva AI Prep</p>
+            </div>
+            <p style="color: #374151; font-size: 15px;">Hello,</p>
+            <p style="color: #374151; font-size: 15px;">We received a request to reset your password. Click the button below to set up a new password for your account:</p>
+            <div style="text-align: center; margin: 28px 0;">
+                <a href="{reset_link}" style="background-color: #2563eb; color: #ffffff; padding: 12px 28px; font-weight: 600; font-size: 14px; text-decoration: none; border-radius: 8px; display: inline-block;">Reset Password</a>
+            </div>
+            <p style="color: #6b7280; font-size: 13px;">Or copy and paste this link into your browser:</p>
+            <p style="word-break: break-all; color: #2563eb; font-size: 13px;"><a href="{reset_link}">{reset_link}</a></p>
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">This password reset link is valid for 15 minutes. If you did not request this change, you can safely ignore this email.</p>
+        </div>
+        """
+
+        msg.attach(MIMEText(text_content, "plain"))
+        msg.attach(MIMEText(html_content, "html"))
+
+        if smtp_port == 465:
+            with smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=10) as server:
+                server.login(smtp_user, smtp_password)
+                server.send_message(msg)
+        else:
+            with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
+                if use_tls:
+                    server.starttls()
+                server.login(smtp_user, smtp_password)
+                server.send_message(msg)
+        return True
+    except Exception as exc:
+        print(f"Error sending password reset email via SMTP: {exc}")
+        return False
+
 class ForgotPassword(BaseModel):
     email: str
 
 @router.post("/forgot-password")
-async def forgot_password(body: ForgotPassword, db: AsyncSession = Depends(get_db)):
+async def forgot_password(body: ForgotPassword, request: Request, db: AsyncSession = Depends(get_db)):
     stmt = select(User).where(User.email == body.email)
     user = (await db.execute(stmt)).scalars().first()
     if user:
         token = secrets.token_urlsafe(32)
         user.reset_token = token
-        user.reset_token_expires = datetime.utcnow() + timedelta(minutes=5)
+        user.reset_token_expires = datetime.utcnow() + timedelta(minutes=15)
         await db.commit()
-        print(f"PASSWORD RESET LINK FOR {user.email}: http://localhost:5173/reset-password?token={token}")
-        return {"msg": "Password reset email sent (check terminal for dev link)", "token": token}
-    return {"msg": "If email exists, reset link has been sent"}
+
+        origin = request.headers.get("origin") or request.headers.get("referer")
+        if origin:
+            base_url = origin.split("?")[0].rstrip("/")
+            for subpath in ("/reset-password", "/forgot", "/login", "/dashboard", "/create", "/viva", "/mcq", "/profile", "/change-password"):
+                if base_url.endswith(subpath):
+                    base_url = base_url[:-len(subpath)].rstrip("/")
+        else:
+            base_url = os.getenv("FRONTEND_URL", "https://lab-pilot-ai.vercel.app")
+
+        reset_link = f"{base_url}/reset-password?token={token}"
+        send_password_reset_email(user.email, reset_link)
+
+        return {
+            "msg": "Password reset email sent",
+            "token": token,
+            "reset_url": reset_link
+        }
+    return {"msg": "Password reset email sent"}
 
 class ResetPassword(BaseModel):
     token: str
@@ -124,7 +206,7 @@ async def reset_password(body: ResetPassword, db: AsyncSession = Depends(get_db)
     stmt = select(User).where(User.reset_token == body.token)
     user = (await db.execute(stmt)).scalars().first()
     if not user or not user.reset_token_expires or user.reset_token_expires < datetime.utcnow():
-        raise HTTPException(status_code=400, detail="Invalid or expired token")
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
     
     user.password_hash = get_password_hash(body.new_password)
     user.reset_token = None

@@ -34,30 +34,40 @@ export function AuthForms() {
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetDirectUrl, setResetDirectUrl] = useState('');
 
   const urlParams = new URLSearchParams(window.location.search);
   const resetToken = urlParams.get('token');
   const isResetPath = window.location.pathname === '/reset-password';
   const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleResetSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!resetToken) {
+      setError('Missing or invalid reset token. Please request a new password reset email.');
+      return;
+    }
     const pwError = getPasswordValidationError(newPassword);
     if (pwError) {
       setError(pwError);
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match');
       return;
     }
     setLoading(true);
     setError('');
     setMsg('');
     try {
-      const res = await api.resetPassword(resetToken as string, newPassword);
-      setMsg(res.msg + '. You can now login.');
+      const res = await api.resetPassword(resetToken, newPassword);
+      setMsg((res.msg || 'Password has been reset successfully') + '. Redirecting to login...');
       setTimeout(() => {
         window.location.href = '/';
-      }, 2000);
+      }, 1500);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to reset password');
+      setError(err.detail || err.message || 'Failed to reset password');
     } finally {
       setLoading(false);
     }
@@ -77,11 +87,15 @@ export function AuthForms() {
     setLoading(true);
     setError('');
     setMsg('');
+    setResetDirectUrl('');
     try {
       const res = await api.forgotPassword(email);
-      setMsg(res.msg);
+      setMsg(res.msg || 'Password reset email sent');
+      if (res.token) {
+        setResetDirectUrl(`/reset-password?token=${res.token}`);
+      }
     } catch (err: any) {
-      setError('Failed to send reset email');
+      setError(err.detail || err.message || 'Failed to send reset email');
     } finally {
       setLoading(false);
     }
@@ -156,6 +170,35 @@ export function AuthForms() {
     </div>
   );
 
+  if (isResetPath && !resetToken) {
+    return (
+      <div className="h-full w-full overflow-y-auto flex items-center justify-center bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8 relative transition-colors duration-150">
+        <HeaderBar />
+        <div className="max-w-md w-full space-y-6 bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 text-center">
+          <div className="mx-auto w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-3">
+            <KeyRound className="w-6 h-6" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Invalid Reset Link</h2>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            No reset token was found in the link. Please request a new password reset email from the sign-in page.
+          </p>
+          <div className="pt-4">
+            <button
+              type="button"
+              onClick={() => {
+                window.location.href = '/';
+              }}
+              className="w-full py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/25 transition-all flex items-center justify-center space-x-2"
+            >
+              <LogIn className="w-4 h-4" />
+              <span>Return to Sign In</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (isResetPath && resetToken) {
     return (
       <div className="h-full w-full overflow-y-auto flex items-center justify-center bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8 relative transition-colors duration-150">
@@ -182,14 +225,37 @@ export function AuthForms() {
                 placeholder="New Password"
               />
             </div>
+            <div className="relative">
+              <Lock className="w-4 h-4 absolute left-3 top-3 text-gray-400 dark:text-gray-500" />
+              <input
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full pl-9 pr-3 py-2.5 bg-gray-50 dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Confirm New Password"
+              />
+            </div>
             <PasswordRequirementsView password={newPassword} />
             <button
               type="submit"
               disabled={loading}
               className="w-full py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/25 transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
             >
+              <KeyRound className="w-4 h-4" />
               <span>{loading ? 'Resetting...' : 'Set New Password'}</span>
             </button>
+            <div className="text-center pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.href = '/';
+                }}
+                className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                Back to Sign In
+              </button>
+            </div>
           </form>
         </div>
       </div>
@@ -207,12 +273,26 @@ export function AuthForms() {
             </div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Forgot Password</h2>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Enter your registered email to receive a reset token
+              Enter your registered email to receive a password reset link
             </p>
           </div>
           <form className="mt-6 space-y-4" onSubmit={handleForgotSubmit}>
             {error && <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-300 text-xs">{error}</div>}
-            {msg && <div className="p-3 rounded-xl bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-900 text-green-600 dark:text-green-300 text-xs">{msg}</div>}
+            {msg && (
+              <div className="p-3.5 rounded-xl bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-900 text-green-700 dark:text-green-300 text-xs space-y-2">
+                <div className="font-medium">{msg}</div>
+                {resetDirectUrl && (
+                  <div className="pt-2 border-t border-green-200/60 dark:border-green-800/60">
+                    <a
+                      href={resetDirectUrl}
+                      className="inline-flex items-center text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      Click here to set your new password &rarr;
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="relative">
               <Mail className="w-4 h-4 absolute left-3 top-3 text-gray-400 dark:text-gray-500" />
               <input
@@ -234,7 +314,12 @@ export function AuthForms() {
             <div className="text-center pt-2">
               <button
                 type="button"
-                onClick={() => setIsForgot(false)}
+                onClick={() => {
+                  setIsForgot(false);
+                  setError('');
+                  setMsg('');
+                  setResetDirectUrl('');
+                }}
                 className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
               >
                 Back to Sign In
@@ -364,7 +449,12 @@ export function AuthForms() {
           <div className="flex items-center justify-between pt-2 text-xs">
             <button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError('');
+                setMsg('');
+                setResetDirectUrl('');
+              }}
               className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
             >
               {isLogin ? 'Need an account? Register' : 'Already registered? Sign in'}
@@ -372,7 +462,12 @@ export function AuthForms() {
             {isLogin && (
               <button
                 type="button"
-                onClick={() => setIsForgot(true)}
+                onClick={() => {
+                  setIsForgot(true);
+                  setError('');
+                  setMsg('');
+                  setResetDirectUrl('');
+                }}
                 className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               >
                 Forgot password?

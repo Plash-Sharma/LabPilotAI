@@ -168,7 +168,9 @@ export default function App() {
     }
   }, [token]);
 
-  if (!token) {
+  const isResetPath = window.location.pathname === '/reset-password';
+
+  if (!token || isResetPath) {
     return <AuthForms />;
   }
 
