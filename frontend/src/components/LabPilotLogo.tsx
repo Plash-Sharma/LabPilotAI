@@ -7,84 +7,80 @@ export interface LabPilotLogoProps {
 
 export const LabPilotLogo: React.FC<LabPilotLogoProps> = ({ size = 'md', className = '' }) => {
   const sizeMap = {
-    sm: 'w-7 h-7 rounded-lg',
-    md: 'w-9 h-9 rounded-xl',
-    lg: 'w-10 h-10 rounded-xl',
-    xl: 'w-12 h-12 rounded-2xl',
+    sm: 'w-7 h-7',
+    md: 'w-9 h-9',
+    lg: 'w-10 h-10',
+    xl: 'w-12 h-12',
   };
 
-  const containerClasses = sizeMap[size] || sizeMap.md;
+  const containerSize = sizeMap[size] || sizeMap.md;
 
   return (
     <div
-      className={`relative flex items-center justify-center flex-shrink-0 shadow-md shadow-blue-500/25 overflow-hidden select-none ${containerClasses} ${className}`}
+      className={`relative inline-flex items-center justify-center flex-shrink-0 select-none overflow-hidden ${containerSize} ${className}`}
     >
       <svg
-        viewBox="0 0 40 40"
+        viewBox="0 0 64 64"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="w-full h-full"
+        className="w-full h-full drop-shadow-sm"
       >
         <defs>
-          <linearGradient id="lp-bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id="lpCompBg" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#2563EB" />
-            <stop offset="50%" stopColor="#3B82F6" />
             <stop offset="100%" stopColor="#1D4ED8" />
           </linearGradient>
-          <linearGradient id="lp-core-glow" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#93C5FD" />
+          <linearGradient id="lpScreenBg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#0B132B" />
+            <stop offset="100%" stopColor="#1C2541" />
+          </linearGradient>
+          <linearGradient id="lpSparkleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#67E8F9" />
             <stop offset="100%" stopColor="#38BDF8" />
           </linearGradient>
         </defs>
 
-        {/* Squircle base */}
-        <rect width="40" height="40" rx="10" fill="url(#lp-bg-grad)" />
+        {/* Background rounded squircle */}
+        <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#lpCompBg)" />
         <rect
-          x="0.75"
-          y="0.75"
-          width="38.5"
-          height="38.5"
-          rx="9.25"
+          x="2.75"
+          y="2.75"
+          width="58.5"
+          height="58.5"
+          rx="15.25"
           stroke="#FFFFFF"
-          strokeOpacity="0.3"
-          strokeWidth="1.25"
+          strokeOpacity="0.25"
+          strokeWidth="1.5"
         />
 
-        {/* Lab Beaker Rim & Neck */}
-        <path
-          d="M17 8.5H23 M20 8.5V13"
-          stroke="#FFFFFF"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        />
+        {/* Computer monitor base / stand */}
+        <path d="M25 47h14 M32 40v7" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
 
-        {/* Aerodynamic Lab-Pilot Flask Delta Wings */}
-        <path
-          d="M17.5 13L9.5 25.5C8.8 26.6 9.6 28 10.9 28H29.1C30.4 28 31.2 26.6 30.5 25.5L22.5 13H17.5Z"
+        {/* Computer monitor body */}
+        <rect
+          x="13"
+          y="15"
+          width="38"
+          height="26"
+          rx="5"
           fill="#FFFFFF"
-          fillOpacity="0.18"
+          fillOpacity="0.12"
           stroke="#FFFFFF"
-          strokeWidth="2.2"
-          strokeLinejoin="round"
+          strokeWidth="2.75"
         />
 
-        {/* AI Quantum Guidance Star Core */}
-        <circle cx="20" cy="21.5" r="2.8" fill="#FFFFFF" />
-        <path
-          d="M20 16.5V19.5 M20 23.5V26.5 M15 21.5H18 M22 21.5H25"
-          stroke="url(#lp-core-glow)"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-        />
+        {/* Screen inside */}
+        <rect x="16.5" y="18.5" width="31" height="19" rx="2.5" fill="url(#lpScreenBg)" />
 
-        {/* Pilot Propulsion Vector */}
+        {/* Code / Lab Pulse on screen */}
+        <path d="M21 24h9 M21 28h15 M21 32h7" stroke="#60A5FA" strokeWidth="2" strokeLinecap="round" />
+
+        {/* AI Lab Sparkle (Top-Right) */}
         <path
-          d="M16 31.5L20 29.5L24 31.5"
-          stroke="url(#lp-core-glow)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          d="M48 7.5c.5 3 2.5 5 5.5 5.5-3 .5-5 2.5-5.5 5.5-.5-3-2.5-5-5.5-5.5 3-.5 5-2.5 5.5-5.5z"
+          fill="url(#lpSparkleGrad)"
         />
+        <circle cx="41" cy="8.5" r="1.5" fill="#A5F3FC" />
       </svg>
     </div>
   );
