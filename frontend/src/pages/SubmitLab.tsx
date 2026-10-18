@@ -24,10 +24,18 @@ import {
   Check,
   X,
   Image,
+  LayoutTemplate,
 } from 'lucide-react';
 import { PdfModal } from '../components/PdfModal';
 import { ConfirmDeleteModal } from '../components/ConfirmDeleteModal';
 import { useToast } from '../contexts/ToastContext';
+import { CustomSelect } from '../components/CustomSelect';
+
+const LANGUAGE_OPTIONS = [
+  { value: 'cpp', label: 'C++', icon: Code2 },
+  { value: 'python', label: 'Python', icon: Code2 },
+  { value: 'java', label: 'Java', icon: Code2 },
+];
 
 interface Problem {
   id: string;
@@ -336,16 +344,18 @@ export default function SubmitLab() {
 
           <div className="my-6">
             <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Select Template Format</label>
-            <select
+            <CustomSelect
               value={templateId}
-              onChange={(e) => setTemplateId(e.target.value)}
-              className="block w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {templates.length === 0 && <option value="">No templates — please wait or seed DB</option>}
-              {templates.map(t => (
-                <option key={t.id} value={t.id}>{t.name} ({t.college_scope})</option>
-              ))}
-            </select>
+              onChange={setTemplateId}
+              options={templates.map(t => ({
+                value: t.id,
+                label: t.name,
+                badge: t.college_scope,
+                icon: LayoutTemplate,
+              }))}
+              placeholder={templates.length === 0 ? "Loading templates..." : "Select Template Format"}
+              emptyMessage="No templates found — please wait or seed DB"
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 bg-gray-50/70 dark:bg-gray-850 p-5 rounded-2xl border border-gray-200 dark:border-gray-800">
@@ -500,15 +510,15 @@ export default function SubmitLab() {
                     <div className="flex justify-between items-center mb-2">
                       <div className="flex items-center space-x-3">
                         <label className="block text-xs font-semibold text-gray-900 dark:text-white">Source Code</label>
-                        <select 
-                          value={prob.language || 'cpp'} 
-                          onChange={(e) => handleProblemChange(idx, 'language', e.target.value)}
-                          className="text-xs bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg py-1 px-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="cpp">C++</option>
-                          <option value="python">Python</option>
-                          <option value="java">Java</option>
-                        </select>
+                        <div className="w-28">
+                          <CustomSelect
+                            size="sm"
+                            value={prob.language || 'cpp'}
+                            onChange={(val) => handleProblemChange(idx, 'language', val)}
+                            options={LANGUAGE_OPTIONS}
+                            searchable={false}
+                          />
+                        </div>
                       </div>
                       <label className="cursor-pointer inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-all">
                         <Upload className="w-3.5 h-3.5 mr-1" /> Upload Files

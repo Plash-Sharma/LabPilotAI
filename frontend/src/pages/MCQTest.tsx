@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { ConfirmDeleteModal } from '../components/ConfirmDeleteModal';
 import { useToast } from '../contexts/ToastContext';
+import { CustomSelect } from '../components/CustomSelect';
 
 export function getDisplayAim(sub: Submission | null | undefined): string {
   if (!sub) return '';
@@ -780,10 +781,9 @@ export default function MCQTestPage() {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Source Lab PDF
                   </label>
-                  <select
+                  <CustomSelect
                     value={selectedSubId}
-                    onChange={(e) => {
-                      const newId = e.target.value;
+                    onChange={(newId) => {
                       setSelectedSubId(newId);
                       if (newId) {
                         setSearchParams({ subId: newId }, { replace: true });
@@ -791,22 +791,18 @@ export default function MCQTestPage() {
                         setSearchParams({}, { replace: true });
                       }
                     }}
-                    className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  >
-                    <option value="">Select Lab Report / File</option>
-                    {/* Unique filenames only */}
-                    {submissions
+                    options={submissions
                       .filter((sub, idx, self) => idx === self.findIndex(s => (s.filename || s.id).trim().toLowerCase() === (sub.filename || sub.id).trim().toLowerCase()))
-                      .map((sub) => {
-                        const title = sub.filename || sub.subject_of_lab || 'Lab Submission';
-                        const details = [sub.subject_of_lab, sub.date_of_lab].filter(Boolean).join(' • ');
-                        return (
-                          <option key={sub.id} value={sub.id}>
-                            {title} {details ? `(${details})` : ''}
-                          </option>
-                        );
-                      })}
-                  </select>
+                      .map((sub) => ({
+                        value: sub.id,
+                        label: sub.filename || sub.subject_of_lab || 'Lab Submission',
+                        description: [sub.subject_of_lab, sub.date_of_lab].filter(Boolean).join(' • ') || undefined,
+                        badge: sub.batch_name ? `Batch: ${sub.batch_name}` : undefined,
+                        icon: FileText,
+                      }))}
+                    placeholder="Select Lab Report / File"
+                    emptyMessage="No lab reports found. Create one first!"
+                  />
                 </div>
 
                 {selectedSubmission && (

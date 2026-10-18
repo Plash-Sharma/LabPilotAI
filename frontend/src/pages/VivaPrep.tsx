@@ -14,8 +14,10 @@ import {
   Zap,
   Target,
   ShieldAlert,
+  FileText,
 } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
+import { CustomSelect } from '../components/CustomSelect';
 
 interface ChatMessage {
   id: string;
@@ -477,25 +479,22 @@ export default function VivaPrep() {
           </div>
 
           <div className="flex items-center space-x-2">
-            <div className="w-full sm:w-72">
-              <select
+            <div className="w-full sm:w-80">
+              <CustomSelect
                 value={selectedSubId}
-                onChange={(e) => setSelectedSubId(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Select Lab Report / File</option>
-                {submissions
+                onChange={setSelectedSubId}
+                options={submissions
                   .filter((sub, idx, self) => idx === self.findIndex(s => (s.filename || s.id).trim().toLowerCase() === (sub.filename || sub.id).trim().toLowerCase()))
-                  .map(sub => {
-                    const title = sub.filename || sub.subject_of_lab || 'Lab Report';
-                    const details = [sub.subject_of_lab, sub.date_of_lab].filter(Boolean).join(' · ');
-                    return (
-                      <option key={sub.id} value={sub.id}>
-                        {title} {details ? `(${details})` : ''}
-                      </option>
-                    );
-                  })}
-              </select>
+                  .map(sub => ({
+                    value: sub.id,
+                    label: sub.filename || sub.subject_of_lab || 'Lab Report',
+                    description: [sub.subject_of_lab, sub.date_of_lab].filter(Boolean).join(' • ') || undefined,
+                    badge: sub.batch_name ? `Batch: ${sub.batch_name}` : undefined,
+                    icon: FileText,
+                  }))}
+                placeholder="Select Lab Report / File"
+                emptyMessage="No lab reports found. Create one first!"
+              />
             </div>
             {messages.length > 0 && (
               <button
