@@ -181,7 +181,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   const { isDarkMode, toggleDarkMode } = useTheme();
 
   return (
-    <div className="flex h-full w-full bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 overflow-hidden transition-colors duration-150">
+    <div className="flex h-screen w-full bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 overflow-hidden transition-colors duration-150">
       <Sidebar isMobileOpen={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
 
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
