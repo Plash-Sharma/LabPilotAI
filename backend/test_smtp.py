@@ -5,11 +5,12 @@ Usage:
     python test_smtp.py recipient@example.com
 """
 import os
-import sys
 import smtplib
-from pathlib import Path
+import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Load backend/.env

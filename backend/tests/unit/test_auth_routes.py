@@ -1,15 +1,16 @@
 import os
-from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import select
 
+from app.api.deps import get_password_hash
 from app.api.routes.auth import get_frontend_url, send_password_reset_email
 from app.core.database import AsyncSessionLocal
-from app.api.deps import get_password_hash, verify_password
 from app.main import app
 from app.models import User
+
 
 @pytest.mark.asyncio
 async def test_get_frontend_url():
