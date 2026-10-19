@@ -140,9 +140,6 @@ export default function LandingPage({ onOpenAuth, onNavigateToDashboard }: Landi
             <a href="#features" className="hover:text-blue-600 dark:hover:text-white transition-colors">
               Features
             </a>
-            <a href="#architecture" className="hover:text-blue-600 dark:hover:text-white transition-colors">
-              Tech Stack
-            </a>
             <a href="#faq" className="hover:text-blue-600 dark:hover:text-white transition-colors">
               FAQ
             </a>
@@ -227,13 +224,6 @@ export default function LandingPage({ onOpenAuth, onNavigateToDashboard }: Landi
               className="block py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
             >
               Features
-            </a>
-            <a
-              href="#architecture"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200"
-            >
-              Tech Stack
             </a>
             <a
               href="#faq"
@@ -832,40 +822,7 @@ int partition(vector<int>& arr, int low, int high) {
       </section>
 
       {/* =========================================================================
-          6. TECH STACK SECTION (MINIMALIST & SOLID)
-      ========================================================================= */}
-      <section id="architecture" className="py-20 border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">
-            Production Technology Stack
-          </h2>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mb-8 max-w-xl mx-auto">
-            Type-safe, asynchronous cloud technologies built for speed and reliability.
-          </p>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
-            <div className="p-3.5 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
-              <div className="font-bold text-gray-900 dark:text-white text-xs">React 18 &amp; TS</div>
-              <div className="text-[11px] text-gray-500">Vite &amp; Tailwind CSS 4</div>
-            </div>
-            <div className="p-3.5 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
-              <div className="font-bold text-gray-900 dark:text-white text-xs">FastAPI 0.110</div>
-              <div className="text-[11px] text-gray-500">Python 3.12 &amp; AsyncIO</div>
-            </div>
-            <div className="p-3.5 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
-              <div className="font-bold text-gray-900 dark:text-white text-xs">PostgreSQL 16</div>
-              <div className="text-[11px] text-gray-500">pgvector 768-dim</div>
-            </div>
-            <div className="p-3.5 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
-              <div className="font-bold text-gray-900 dark:text-white text-xs">Google Gemini</div>
-              <div className="text-[11px] text-gray-500">Flash 2.5 &amp; Embeddings</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          7. FAQ ACCORDION
+          6. FAQ ACCORDION
       ========================================================================= */}
       <section id="faq" className="py-20 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -910,7 +867,7 @@ int partition(vector<int>& arr, int low, int high) {
       </section>
 
       {/* =========================================================================
-          8. HIGH-CLASS SOLID BOTTOM CTA
+          7. HIGH-CLASS SOLID BOTTOM CTA
       ========================================================================= */}
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -951,7 +908,7 @@ int partition(vector<int>& arr, int low, int high) {
       </section>
 
       {/* =========================================================================
-          9. FOOTER
+          8. FOOTER
       ========================================================================= */}
       <footer className="border-t border-gray-200 dark:border-gray-800 py-8 bg-white dark:bg-gray-950 text-xs text-gray-500 dark:text-gray-400">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">

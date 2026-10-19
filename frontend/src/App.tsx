@@ -341,6 +341,10 @@ function AppContent() {
           initialMode={authModal}
           isModal={true}
           onClose={() => setAuthModal(null)}
+          onSuccess={() => {
+            setAuthModal(null);
+            navigate('/dashboard', { replace: true });
+          }}
         />
       )}
     </>

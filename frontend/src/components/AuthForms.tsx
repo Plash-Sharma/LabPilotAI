@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { api } from '../api/client';
@@ -22,10 +23,12 @@ import { PasswordRequirementsView, getPasswordValidationError } from './Password
 export interface AuthFormsProps {
   initialMode?: 'login' | 'register';
   onClose?: () => void;
+  onSuccess?: () => void;
   isModal?: boolean;
 }
 
-export function AuthForms({ initialMode = 'login', onClose, isModal = false }: AuthFormsProps = {}) {
+export function AuthForms({ initialMode = 'login', onClose, onSuccess, isModal = false }: AuthFormsProps = {}) {
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(initialMode === 'login');
   const [isForgot, setIsForgot] = useState(false);
   const { setToken } = useAuth();
@@ -124,7 +127,12 @@ export function AuthForms({ initialMode = 'login', onClose, isModal = false }: A
         const res = await api.login(email, password);
         setToken(res.access_token);
         api.getMe().catch(() => {});
-        if (onClose) onClose();
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          if (onClose) onClose();
+          navigate('/dashboard', { replace: true });
+        }
       } else {
         const pwError = getPasswordValidationError(password);
         if (pwError) {
@@ -148,7 +156,12 @@ export function AuthForms({ initialMode = 'login', onClose, isModal = false }: A
         });
         setToken(res.access_token);
         api.getMe().catch(() => {});
-        if (onClose) onClose();
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          if (onClose) onClose();
+          navigate('/dashboard', { replace: true });
+        }
       }
     } catch (err: any) {
       let msg = err.detail || err.message || 'Authentication failed';
