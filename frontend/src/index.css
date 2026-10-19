@@ -38,12 +38,21 @@ html.dark {
   color-scheme: dark;
 }
 
-html,
+html {
+  min-height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
 body {
   min-height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 #root {

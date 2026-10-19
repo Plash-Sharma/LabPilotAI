@@ -107,7 +107,7 @@ export default function LandingPage({ onOpenAuth, onNavigateToDashboard }: Landi
   ];
 
   return (
-    <div className="w-full bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-150">
+    <div className="min-h-screen w-full bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-150">
       {/* =========================================================================
           1. SLEEK SOLID NAVBAR
       ========================================================================= */}
