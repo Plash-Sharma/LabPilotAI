@@ -14,15 +14,28 @@ import {
   KeyRound,
   Sun,
   Moon,
+  X,
 } from 'lucide-react';
 import { LabPilotLogo } from './LabPilotLogo';
 import { PasswordRequirementsView, getPasswordValidationError } from './PasswordRequirements';
 
-export function AuthForms() {
-  const [isLogin, setIsLogin] = useState(true);
+export interface AuthFormsProps {
+  initialMode?: 'login' | 'register';
+  onClose?: () => void;
+  isModal?: boolean;
+}
+
+export function AuthForms({ initialMode = 'login', onClose, isModal = false }: AuthFormsProps = {}) {
+  const [isLogin, setIsLogin] = useState(initialMode === 'login');
   const [isForgot, setIsForgot] = useState(false);
   const { setToken } = useAuth();
   const { isDarkMode, toggleDarkMode } = useTheme();
+
+  React.useEffect(() => {
+    if (initialMode) {
+      setIsLogin(initialMode === 'login');
+    }
+  }, [initialMode]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,6 +46,7 @@ export function AuthForms() {
 
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
+  const [devResetUrl, setDevResetUrl] = useState('');
   const [loading, setLoading] = useState(false);
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -86,9 +100,13 @@ export function AuthForms() {
     setLoading(true);
     setError('');
     setMsg('');
+    setDevResetUrl('');
     try {
       const res = await api.forgotPassword(email);
       setMsg(res.msg || 'If an account exists with this email address, a password reset link has been sent to your inbox.');
+      if (res.dev_reset_url) {
+        setDevResetUrl(res.dev_reset_url);
+      }
     } catch (err: any) {
       setError(err.detail || err.message || 'Failed to send reset email');
     } finally {
@@ -106,6 +124,7 @@ export function AuthForms() {
         const res = await api.login(email, password);
         setToken(res.access_token);
         api.getMe().catch(() => {});
+        if (onClose) onClose();
       } else {
         const pwError = getPasswordValidationError(password);
         if (pwError) {
@@ -129,6 +148,7 @@ export function AuthForms() {
         });
         setToken(res.access_token);
         api.getMe().catch(() => {});
+        if (onClose) onClose();
       }
     } catch (err: any) {
       let msg = err.detail || err.message || 'Authentication failed';
@@ -149,9 +169,19 @@ export function AuthForms() {
     }
   };
 
-  // Top header with Theme Toggle
+  const containerClass = isModal
+    ? 'fixed inset-0 z-50 overflow-y-auto flex items-center justify-center bg-black/60 backdrop-blur-md py-8 px-4 sm:px-6 transition-all'
+    : 'h-full w-full overflow-y-auto flex items-center justify-center bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8 relative transition-colors duration-150';
+
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isModal && onClose && e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  // Top header with Theme Toggle and Close button
   const HeaderBar = () => (
-    <div className="absolute top-4 right-4 flex items-center space-x-2">
+    <div className="absolute top-4 right-4 flex items-center space-x-2 z-10">
       <button
         id="theme-toggle-auth-btn"
         type="button"
@@ -162,12 +192,22 @@ export function AuthForms() {
         {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-gray-600" />}
         <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
       </button>
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          className="p-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 hover:text-gray-900 dark:hover:text-white shadow-sm transition-all flex items-center justify-center"
+          aria-label="Close dialog"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
     </div>
   );
 
   if (isResetPath && !resetToken) {
     return (
-      <div className="h-full w-full overflow-y-auto flex items-center justify-center bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8 relative transition-colors duration-150">
+      <div className={containerClass} onClick={handleBackdropClick}>
         <HeaderBar />
         <div className="max-w-md w-full space-y-6 bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 text-center">
           <div className="mx-auto w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-3">
@@ -196,7 +236,7 @@ export function AuthForms() {
 
   if (isResetPath && resetToken) {
     return (
-      <div className="h-full w-full overflow-y-auto flex items-center justify-center bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8 relative transition-colors duration-150">
+      <div className={containerClass} onClick={handleBackdropClick}>
         <HeaderBar />
         <div className="max-w-md w-full space-y-6 bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800">
           <div className="text-center">
@@ -259,7 +299,7 @@ export function AuthForms() {
 
   if (isForgot) {
     return (
-      <div className="h-full w-full overflow-y-auto flex items-center justify-center bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8 relative transition-colors duration-150">
+      <div className={containerClass} onClick={handleBackdropClick}>
         <HeaderBar />
         <div className="max-w-md w-full space-y-6 bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800">
           <div className="text-center">
@@ -276,6 +316,25 @@ export function AuthForms() {
             {msg && (
               <div className="p-3.5 rounded-xl bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-900 text-green-700 dark:text-green-300 text-xs">
                 <div className="font-medium">{msg}</div>
+              </div>
+            )}
+            {devResetUrl && (
+              <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-amber-900 dark:text-amber-200 text-xs space-y-2.5">
+                <div className="font-semibold flex items-center gap-1.5 text-amber-800 dark:text-amber-300">
+                  <KeyRound className="w-4 h-4 shrink-0" />
+                  <span>Development Notice: SMTP Not Configured</span>
+                </div>
+                <p className="text-[11px] leading-relaxed text-amber-700 dark:text-amber-300/90">
+                  SMTP credentials are not configured in <code className="px-1 py-0.5 rounded bg-amber-100 dark:bg-amber-900/60 font-mono text-[10px]">backend/.env</code>, so no real email was dispatched. For testing, you can click the generated reset link below:
+                </p>
+                <div className="pt-1">
+                  <a
+                    href={devResetUrl}
+                    className="block text-center w-full py-2 px-3 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs transition-colors shadow-sm"
+                  >
+                    Open Password Reset Page
+                  </a>
+                </div>
               </div>
             )}
             <div className="relative">
@@ -303,6 +362,7 @@ export function AuthForms() {
                   setIsForgot(false);
                   setError('');
                   setMsg('');
+                  setDevResetUrl('');
                 }}
                 className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
               >
@@ -316,7 +376,7 @@ export function AuthForms() {
   }
 
   return (
-    <div className="h-full w-full overflow-y-auto flex items-center justify-center bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8 relative transition-colors duration-150">
+    <div className={containerClass} onClick={handleBackdropClick}>
       <HeaderBar />
 
       <div className="max-w-md w-full space-y-6 bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 transition-colors">
@@ -449,6 +509,7 @@ export function AuthForms() {
                   setIsForgot(true);
                   setError('');
                   setMsg('');
+                  setDevResetUrl('');
                 }}
                 className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               >

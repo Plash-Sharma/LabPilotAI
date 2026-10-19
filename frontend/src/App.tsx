@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { useTheme } from './contexts/ThemeContext';
 import { api } from './api/client';
 import { AuthForms } from './components/AuthForms';
+import LandingPage from './pages/LandingPage';
 import SubmitLab from './pages/SubmitLab';
 import Dashboard from './pages/Dashboard';
 import VivaPrep from './pages/VivaPrep';
@@ -22,6 +23,7 @@ import {
   Sun,
   Menu,
   X,
+  Compass,
 } from 'lucide-react';
 import { LabPilotLogo } from './components/LabPilotLogo';
 
@@ -48,13 +50,17 @@ function Sidebar({ isMobileOpen, onClose }: SidebarProps) {
     <div className="flex flex-col h-full">
       {/* Brand Header */}
       <div className="flex items-center justify-between px-6 h-16 border-b border-gray-200 dark:border-gray-800">
-        <div className="flex items-center space-x-3">
+        <Link
+          to="/"
+          className="flex items-center space-x-3 hover:opacity-85 transition-opacity"
+          title="View Landing Page & Guide"
+        >
           <LabPilotLogo size="md" />
           <div className="flex flex-col">
             <span className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">LabPilotAI</span>
             <span className="text-[10px] uppercase font-semibold tracking-wider text-blue-600 dark:text-blue-400">Lab Suite</span>
           </div>
-        </div>
+        </Link>
         {onClose && (
           <button
             onClick={onClose}
@@ -97,6 +103,20 @@ function Sidebar({ isMobileOpen, onClose }: SidebarProps) {
             );
           })}
         </nav>
+
+        {/* Quick Link to Landing / Overview */}
+        <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-800/80">
+          <Link
+            to="/"
+            onClick={() => {
+              if (onClose) onClose();
+            }}
+            className="group flex items-center px-3 py-2 text-xs font-medium rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all"
+          >
+            <Compass className="mr-3 h-4 w-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
+            <span>Product Guide & Home</span>
+          </Link>
+        </div>
       </div>
 
       {/* Footer Controls: Theme Toggle & Logout */}
@@ -156,70 +176,181 @@ function Sidebar({ isMobileOpen, onClose }: SidebarProps) {
   );
 }
 
-export default function App() {
-  const { token } = useAuth();
+function DashboardShell({ children }: { children: React.ReactNode }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { isDarkMode, toggleDarkMode } = useTheme();
 
+  return (
+    <div className="flex h-full w-full bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 overflow-hidden transition-colors duration-150">
+      <Sidebar isMobileOpen={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
+
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+        {/* Mobile top-bar header */}
+        <header className="md:hidden flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-30 flex-shrink-0 transition-colors">
+          <div className="flex items-center space-x-3">
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen(true)}
+              className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-750 transition-colors"
+              aria-label="Open navigation menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <Link to="/dashboard" className="flex items-center space-x-2.5">
+              <LabPilotLogo size="sm" />
+              <span className="font-bold text-sm text-gray-900 dark:text-white tracking-tight">LabPilotAI</span>
+            </Link>
+          </div>
+
+          <button
+            type="button"
+            onClick={toggleDarkMode}
+            className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-750 transition-colors"
+            aria-label="Toggle theme"
+          >
+            {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-gray-500" />}
+          </button>
+        </header>
+
+        <main className="flex-1 overflow-y-auto h-full bg-gray-50 dark:bg-gray-950 p-4 sm:p-6 md:p-8 transition-colors duration-150">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function AppContent() {
+  const { token } = useAuth();
+  const [authModal, setAuthModal] = useState<'login' | 'register' | null>(null);
+  const navigate = useNavigate();
+
   useEffect(() => {
     if (token) {
-      // Prefetch profile immediately in background so Profile page loads in 0ms
+      // Prefetch profile immediately in background
       api.getMe().catch(() => {});
     }
   }, [token]);
 
-  const isResetPath = window.location.pathname === '/reset-password';
+  return (
+    <>
+      <Routes>
+        {/* Public Landing Page */}
+        <Route
+          path="/"
+          element={
+            <LandingPage
+              onOpenAuth={(mode) => setAuthModal(mode)}
+              onNavigateToDashboard={() => navigate('/dashboard')}
+            />
+          }
+        />
 
-  if (!token || isResetPath) {
-    return <AuthForms />;
-  }
+        {/* Dedicated Auth Routes */}
+        <Route
+          path="/login"
+          element={token ? <Navigate to="/dashboard" replace /> : <AuthForms initialMode="login" />}
+        />
+        <Route
+          path="/register"
+          element={token ? <Navigate to="/dashboard" replace /> : <AuthForms initialMode="register" />}
+        />
+        <Route path="/reset-password" element={<AuthForms />} />
 
+        {/* Protected Dashboard Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            token ? (
+              <DashboardShell>
+                <Dashboard />
+              </DashboardShell>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/create"
+          element={
+            token ? (
+              <DashboardShell>
+                <SubmitLab />
+              </DashboardShell>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/viva"
+          element={
+            token ? (
+              <DashboardShell>
+                <VivaPrep />
+              </DashboardShell>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/mcq"
+          element={
+            token ? (
+              <DashboardShell>
+                <MCQTestPage />
+              </DashboardShell>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            token ? (
+              <DashboardShell>
+                <Profile />
+              </DashboardShell>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/change-password"
+          element={
+            token ? (
+              <DashboardShell>
+                <ChangePassword />
+              </DashboardShell>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+
+        {/* Catch-all fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+
+      {/* Global Auth Modal when triggered from Landing Page */}
+      {authModal && !token && (
+        <AuthForms
+          initialMode={authModal}
+          isModal={true}
+          onClose={() => setAuthModal(null)}
+        />
+      )}
+    </>
+  );
+}
+
+export default function App() {
   return (
     <BrowserRouter>
-      <div className="flex h-full w-full bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 overflow-hidden transition-colors duration-150">
-        <Sidebar isMobileOpen={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
-
-        <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
-          {/* Mobile top-bar header */}
-          <header className="md:hidden flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-30 flex-shrink-0 transition-colors">
-            <div className="flex items-center space-x-3">
-              <button
-                type="button"
-                onClick={() => setMobileNavOpen(true)}
-                className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-750 transition-colors"
-                aria-label="Open navigation menu"
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-              <div className="flex items-center space-x-2.5">
-                <LabPilotLogo size="sm" />
-                <span className="font-bold text-sm text-gray-900 dark:text-white tracking-tight">LabPilotAI</span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={toggleDarkMode}
-              className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-750 transition-colors"
-              aria-label="Toggle theme"
-            >
-              {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-gray-500" />}
-            </button>
-          </header>
-
-          <main className="flex-1 overflow-y-auto h-full bg-gray-50 dark:bg-gray-950 p-4 sm:p-6 md:p-8 transition-colors duration-150">
-            <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/create" element={<SubmitLab />} />
-              <Route path="/viva" element={<VivaPrep />} />
-              <Route path="/mcq" element={<MCQTestPage />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/change-password" element={<ChangePassword />} />
-            </Routes>
-          </main>
-        </div>
-      </div>
+      <AppContent />
     </BrowserRouter>
   );
 }

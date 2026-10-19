@@ -103,6 +103,29 @@ async def get_me(current_user: User = Depends(get_current_user)):
         roll_number=current_user.roll_number
     )
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+def get_frontend_url(request: Request) -> str:
+    env_frontend = os.getenv("FRONTEND_URL")
+    if env_frontend:
+        return env_frontend.rstrip("/")
+
+    origin = request.headers.get("origin")
+    if origin:
+        cors_origins_env = os.getenv("CORS_ORIGINS", "")
+        allowed = [o.strip() for o in cors_origins_env.split(",") if o.strip()]
+        if (
+            origin in allowed
+            or "*" in allowed
+            or origin.startswith("http://localhost:")
+            or origin.startswith("http://127.0.0.1:")
+        ):
+            return origin.rstrip("/")
+
+    return "https://lab-pilot-ai.vercel.app"
+
 def send_password_reset_email(to_email: str, reset_link: str) -> bool:
     smtp_host = os.getenv("SMTP_HOST") or os.getenv("MAIL_SERVER")
     smtp_port_raw = os.getenv("SMTP_PORT") or os.getenv("MAIL_PORT") or "587"
@@ -112,6 +135,20 @@ def send_password_reset_email(to_email: str, reset_link: str) -> bool:
     use_tls = os.getenv("SMTP_TLS", "true").lower() in ("true", "1", "yes")
 
     if not smtp_host or not smtp_user or not smtp_password:
+        logger.warning(
+            "[AUTH] Password reset email not sent: SMTP is not configured. "
+            "Set SMTP_HOST, SMTP_PORT, SMTP_USER, and SMTP_PASSWORD in backend/.env to send real emails."
+        )
+        print(
+            "\n"
+            "================================================================================\n"
+            "[AUTH - DEV PASSWORD RESET LINK]\n"
+            f"Recipient: {to_email}\n"
+            f"Reset URL: {reset_link}\n"
+            "Reason: SMTP credentials not set in .env. Password reset email was NOT sent.\n"
+            "To send via Gmail, configure SMTP_HOST=smtp.gmail.com with a Google App Password.\n"
+            "================================================================================\n"
+        )
         return False
 
     try:
@@ -151,18 +188,33 @@ def send_password_reset_email(to_email: str, reset_link: str) -> bool:
         msg.attach(MIMEText(html_content, "html"))
 
         if smtp_port == 465:
-            with smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=10) as server:
+            with smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=15) as server:
+                server.ehlo()
                 server.login(smtp_user, smtp_password)
                 server.send_message(msg)
         else:
-            with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
+            with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
+                server.ehlo()
                 if use_tls:
                     server.starttls()
+                    server.ehlo()
                 server.login(smtp_user, smtp_password)
                 server.send_message(msg)
+        logger.info(f"[AUTH] Successfully sent password reset email to {to_email}")
         return True
     except Exception as exc:
-        print(f"Error sending password reset email via SMTP: {exc}")
+        logger.error(f"[AUTH] Error sending password reset email via SMTP: {exc}")
+        print(
+            f"\n"
+            f"================================================================================\n"
+            f"[AUTH - SMTP ERROR]\n"
+            f"Failed to send email to {to_email} via {smtp_host}:{smtp_port_raw}\n"
+            f"Error: {exc}\n"
+            f"Tip: If using Gmail, make sure you generated an App Password from:\n"
+            f"https://myaccount.google.com/apppasswords (normal account password will be rejected).\n"
+            f"Dev Reset URL: {reset_link}\n"
+            f"================================================================================\n"
+        )
         return False
 
 class ForgotPassword(BaseModel):
@@ -180,22 +232,36 @@ async def forgot_password(body: ForgotPassword, request: Request, db: AsyncSessi
 
     stmt = select(User).where(User.email == body.email)
     user = (await db.execute(stmt)).scalars().first()
+
+    email_sent = False
+    dev_reset_url = None
+
     if user:
         token = secrets.token_urlsafe(32)
         user.reset_token = token
         user.reset_token_expires = datetime.utcnow() + timedelta(minutes=15)
         await db.commit()
 
-        # 2. Prevent Host Header / Reset-Link poisoning: strictly use configured FRONTEND_URL
-        frontend_url = os.getenv("FRONTEND_URL", "https://lab-pilot-ai.vercel.app").rstrip("/")
+        # 2. Prevent Host Header / Reset-Link poisoning: strictly use configured or validated FRONTEND_URL
+        frontend_url = get_frontend_url(request)
         reset_link = f"{frontend_url}/reset-password?token={token}"
 
-        # 3. Deliver token ONLY via email
-        send_password_reset_email(user.email, reset_link)
+        # 3. Deliver token via email
+        email_sent = send_password_reset_email(user.email, reset_link)
 
-    # 4. Return identical generic message to prevent account enumeration
-    # Never return the token or reset_url in the API response
-    return {"msg": GENERIC_RESET_MSG}
+        # 4. In development / when SMTP fails or is unconfigured, provide reset url for testing
+        is_prod = os.getenv("ENVIRONMENT", "").lower() in ("production", "prod")
+        if not email_sent and not is_prod:
+            dev_reset_url = reset_link
+
+    resp: dict[str, Any] = {"msg": GENERIC_RESET_MSG}
+    if dev_reset_url:
+        resp["dev_reset_url"] = dev_reset_url
+        resp["dev_note"] = (
+            "SMTP is not configured on the backend server. In local development, you can use this reset link directly."
+        )
+
+    return resp
 
 class ResetPassword(BaseModel):
     token: str
