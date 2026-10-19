@@ -119,14 +119,9 @@ export default function LandingPage({ onOpenAuth, onNavigateToDashboard }: Landi
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
             <LabPilotLogo size="md" />
-            <div className="flex items-center space-x-2">
-              <span className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">
-                LabPilotAI
-              </span>
-              <span className="hidden sm:inline-flex text-[11px] font-semibold px-2 py-0.5 rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
-                v1.0
-              </span>
-            </div>
+            <span className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">
+              LabPilotAI
+            </span>
           </div>
 
           {/* Desktop Nav Links */}
