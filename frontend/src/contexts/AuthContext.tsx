@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { clearCache } from '../api/client';
+import { clearCache, getApiToken, setApiToken } from '../api/client';
 
 interface AuthContextType {
   token: string | null;
@@ -14,20 +14,25 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [token, setTokenState] = useState<string | null>(() => getApiToken());
 
-  useEffect(() => {
-    if (token) {
-      localStorage.setItem('token', token);
-    } else {
-      localStorage.removeItem('token');
-    }
-  }, [token]);
+  const setToken = (newToken: string | null) => {
+    setApiToken(newToken);
+    setTokenState(newToken);
+  };
 
   const logout = () => {
     clearCache();
     setToken(null);
   };
+
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setTokenState(null);
+    };
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+  }, []);
 
   return (
     <AuthContext.Provider value={{ token, setToken, logout }}>

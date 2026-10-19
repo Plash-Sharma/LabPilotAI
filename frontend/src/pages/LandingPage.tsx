@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { LabPilotLogo } from '../components/LabPilotLogo';
@@ -27,8 +28,17 @@ interface LandingPageProps {
 }
 
 export default function LandingPage({ onOpenAuth, onNavigateToDashboard }: LandingPageProps) {
+  const navigate = useNavigate();
   const { token } = useAuth();
   const { isDarkMode, toggleDarkMode } = useTheme();
+
+  const handleDashboardNavigation = () => {
+    if (onNavigateToDashboard) {
+      onNavigateToDashboard();
+    } else {
+      navigate('/dashboard');
+    }
+  };
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeWorkflowStep, setActiveWorkflowStep] = useState(0);
@@ -152,7 +162,7 @@ export default function LandingPage({ onOpenAuth, onNavigateToDashboard }: Landi
 
             {token ? (
               <button
-                onClick={onNavigateToDashboard || (() => { window.location.href = '/dashboard'; })}
+                onClick={handleDashboardNavigation}
                 className="inline-flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"
               >
                 <span>Dashboard</span>
@@ -232,8 +242,7 @@ export default function LandingPage({ onOpenAuth, onNavigateToDashboard }: Landi
                 <button
                   onClick={() => {
                     setMobileMenuOpen(false);
-                    if (onNavigateToDashboard) onNavigateToDashboard();
-                    else window.location.href = '/dashboard';
+                    handleDashboardNavigation();
                   }}
                   className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold text-white bg-blue-600 text-center"
                 >
@@ -294,7 +303,7 @@ export default function LandingPage({ onOpenAuth, onNavigateToDashboard }: Landi
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
             {token ? (
               <button
-                onClick={onNavigateToDashboard || (() => { window.location.href = '/dashboard'; })}
+                onClick={handleDashboardNavigation}
                 className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-6 py-3 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"
               >
                 <span>Go to Lab Dashboard</span>
@@ -876,7 +885,7 @@ int partition(vector<int>& arr, int low, int high) {
             <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
               {token ? (
                 <button
-                  onClick={onNavigateToDashboard || (() => { window.location.href = '/dashboard'; })}
+                  onClick={handleDashboardNavigation}
                   className="w-full sm:w-auto px-6 py-2.5 rounded-lg font-semibold text-gray-900 bg-white hover:bg-gray-100 transition-colors text-sm"
                 >
                   Open Your Dashboard →

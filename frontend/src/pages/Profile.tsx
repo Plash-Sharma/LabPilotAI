@@ -5,16 +5,26 @@ import { User, Hash, Mail, Building2, RefreshCw, ShieldCheck } from 'lucide-reac
 export default function Profile() {
   const [user, setUser] = useState<{name: string, email: string, college: string, roll_number: string | null} | null>(() => api.getCachedMe());
   const [loading, setLoading] = useState<boolean>(() => !api.getCachedMe());
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    api.getMe()
+  const fetchProfile = (force = false) => {
+    setLoading(true);
+    setError(null);
+    api.getMe(force)
       .then(res => {
         if (res && res.email) {
           setUser(res);
         }
       })
-      .catch(console.error)
+      .catch(err => {
+        console.error('Failed to load profile:', err);
+        setError(err.message || 'Failed to load profile');
+      })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchProfile();
   }, []);
 
   return (
@@ -39,6 +49,16 @@ export default function Profile() {
           {loading && !user ? (
             <div className="p-12 text-center text-gray-500 dark:text-gray-400 flex justify-center items-center">
               <RefreshCw className="w-5 h-5 mr-2 animate-spin text-blue-500" /> Loading profile...
+            </div>
+          ) : error && !user ? (
+            <div className="p-8 text-center space-y-3">
+              <p className="text-sm text-red-500 dark:text-red-400">{error}</p>
+              <button
+                onClick={() => fetchProfile(true)}
+                className="inline-flex items-center px-4 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+              >
+                <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Retry
+              </button>
             </div>
           ) : (
             <dl className="divide-y divide-gray-100 dark:divide-gray-800/80">

@@ -78,8 +78,29 @@ function parseApiErrorMessage(status: number, rawText: string): string {
   return rawText;
 }
 
+let inMemoryToken: string | null = null;
+
+export function getApiToken(): string | null {
+  if (inMemoryToken) return inMemoryToken;
+  try {
+    inMemoryToken = localStorage.getItem('token');
+  } catch {}
+  return inMemoryToken;
+}
+
+export function setApiToken(token: string | null): void {
+  inMemoryToken = token;
+  try {
+    if (token) {
+      localStorage.setItem('token', token);
+    } else {
+      localStorage.removeItem('token');
+    }
+  } catch {}
+}
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const token = localStorage.getItem('token');
+  const token = getApiToken();
   const headers = new Headers(options.headers || {});
   if (!headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
@@ -93,9 +114,14 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   };
   const res = await fetch(`${API_BASE}${endpoint}`, config);
   if (!res.ok) {
-    if (res.status === 401) {
-      clearCache();
-      localStorage.removeItem('token');
+    if (res.status === 401 && endpoint !== '/auth/login' && endpoint !== '/auth/register') {
+      if (token) {
+        setApiToken(null);
+        clearCache();
+        try {
+          window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+        } catch {}
+      }
     }
     const rawText = await res.text();
     const cleanMessage = parseApiErrorMessage(res.status, rawText);
@@ -275,20 +301,31 @@ export function clearCache(keyPrefix?: string): void {
 }
 
 export const api = {
-  login: (email: string, password: string) => {
+  login: async (email: string, password: string) => {
     clearCache();
     const formData = new URLSearchParams();
     formData.append('username', email);
     formData.append('password', password);
-    return request<{ access_token: string }>('/auth/login', {
+    const res = await request<{ access_token: string }>('/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: formData.toString(),
     });
+    if (res && res.access_token) {
+      setApiToken(res.access_token);
+    }
+    return res;
   },
-  register: (body: any) => {
+  register: async (body: any) => {
     clearCache();
-    return request<{ access_token: string }>('/auth/register', { method: 'POST', body: JSON.stringify(body) });
+    const res = await request<{ access_token: string }>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+    if (res && res.access_token) {
+      setApiToken(res.access_token);
+    }
+    return res;
   },
   getMe: async (force = false): Promise<any> => {
     const cached = getCachedUserProfile<any>();
