@@ -66,6 +66,29 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Global button and interactive element pointer cursor */
+button,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="file"]::file-selector-button,
+select,
+summary {
+  cursor: pointer;
+}
+
+button:disabled,
+button[disabled],
+[role="button"][aria-disabled="true"],
+input[type="button"]:disabled,
+input[type="submit"]:disabled,
+input[type="reset"]:disabled,
+input:disabled,
+select:disabled {
+  cursor: not-allowed;
+}
+
 /* Custom scrollbars */
 ::-webkit-scrollbar {
   width: 7px;
