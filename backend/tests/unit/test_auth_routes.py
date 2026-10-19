@@ -1,15 +1,16 @@
 import os
-from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import select
 
+from app.api.deps import get_password_hash
 from app.api.routes.auth import get_frontend_url, send_password_reset_email
-from app.core.database import AsyncSessionLocal
-from app.api.deps import get_password_hash, verify_password
+from app.core.database import AsyncSessionLocal, Base, engine
 from app.main import app
 from app.models import User
+
 
 @pytest.mark.asyncio
 async def test_get_frontend_url():
@@ -49,6 +50,9 @@ def test_send_password_reset_email_mocked_smtp():
 
 @pytest.mark.asyncio
 async def test_forgot_and_reset_password_flow():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
     async with AsyncSessionLocal() as db:
         # Create a test user
         test_email = "resettester@example.com"
