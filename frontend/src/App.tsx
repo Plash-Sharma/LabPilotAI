@@ -104,17 +104,18 @@ function Sidebar({ isMobileOpen, onClose }: SidebarProps) {
           })}
         </nav>
 
-        {/* Quick Link to Landing / Overview */}
+        {/* Quick Link to Platform Guide */}
         <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-800/80">
           <Link
-            to="/"
+            to="/#workflow"
             onClick={() => {
               if (onClose) onClose();
             }}
             className="group flex items-center px-3 py-2 text-xs font-medium rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all"
+            title="Platform Guide"
           >
             <Compass className="mr-3 h-4 w-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
-            <span>Product Guide & Home</span>
+            <span>Guide</span>
           </Link>
         </div>
       </div>
@@ -196,7 +197,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <Link to="/dashboard" className="flex items-center space-x-2.5">
+            <Link to="/" className="flex items-center space-x-2.5 hover:opacity-85 transition-opacity" title="Visit LabPilotAI Home Page">
               <LabPilotLogo size="sm" />
               <span className="font-bold text-sm text-gray-900 dark:text-white tracking-tight">LabPilotAI</span>
             </Link>

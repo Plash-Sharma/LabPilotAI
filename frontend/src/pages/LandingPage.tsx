@@ -311,7 +311,7 @@ export default function LandingPage({ onOpenAuth, onNavigateToDashboard }: Landi
                   onClick={() => onOpenAuth('register')}
                   className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-6 py-3 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"
                 >
-                  <span>Get Started Free</span>
+                  <span>Get Started</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
                 <a
@@ -892,7 +892,7 @@ int partition(vector<int>& arr, int low, int high) {
                     onClick={() => onOpenAuth('register')}
                     className="w-full sm:w-auto px-6 py-2.5 rounded-lg font-semibold text-gray-900 bg-white hover:bg-gray-100 transition-colors text-sm"
                   >
-                    Create Free Account
+                    Create Account
                   </button>
                   <button
                     onClick={() => onOpenAuth('login')}
