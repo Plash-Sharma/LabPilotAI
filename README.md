@@ -24,7 +24,8 @@ LabPilotAI is an engineering laboratory record automation, vector search (RAG) e
 - [9. Configuration and Environment Variables](#9-configuration-and-environment-variables)
 - [10. Testing and Quality Assurance](#10-testing-and-quality-assurance)
 - [11. Production Deployment Guide](#11-production-deployment-guide)
-- [12. License](#12-license)
+- [12. Future Roadmap & Upcoming Features](#12-future-roadmap--upcoming-features)
+- [13. License](#13-license)
 
 ---
 
@@ -617,6 +618,21 @@ For detailed cloud configuration instructions, refer to [docs/FREE_DEPLOYMENT_GU
 
 ---
 
-## 12. License
+## 12. Future Roadmap & Upcoming Features
+
+LabPilotAI is actively evolving to support advanced laboratory workflows, collaborative learning, and LMS integrations. The following capabilities are scheduled for upcoming release phases:
+
+| # | Feature | Architectural Scope & Target Capabilities |
+| :---: | :--- | :--- |
+| **01** | **Interactive Template Visual Editor** | In-browser WYSIWYG and code-based template editor empowering students and university faculties to design, customize, and export custom academic PDF layouts. Includes customizable border styles, college crest uploaders, faculty signature blocks, and department-specific grading criteria. |
+| **02** | **Hierarchical File & Lab Folder Directory** | Dedicated workspace filesystem for comprehensive lab record management. Allows students to organize experiments into nested directories sorted by **Academic Year**, **Semester**, **Course Subject** (e.g., *Data Structures*, *OS*, *Database Systems*), and **Lab Batch**, with tagging, search, and batch PDF exports. |
+| **03** | **Direct Google Classroom LMS Integration** | Native Google Classroom API integration with OAuth2 authentication. Enables students to connect their university Google account, view active lab assignments, and turn in compiled lab reports with their generated PDFs directly from LabPilotAI without manual downloads. |
+| **04** | **End-of-Semester Multi-Lab Report Stitcher** | Automatic document concatenation and binding engine that merges all semester experiment submissions into a single master university lab manual. Features auto-generated dynamic Table of Contents, continuous page numbering, and an institutional semester title sheet for final university evaluations. |
+| **05** | **In-Browser PDF Annotation & Editor** | Built-in canvas-based PDF editing suite. Allows students and evaluators to annotate code listings, insert geometric algorithm diagrams and state machine flowcharts, append professor review notes, sign pages digitally, and redact confidential details. |
+| **06** | **Collaborative Lab Chatrooms & Study Groups** | Real-time WebSocket-powered collaboration spaces. Students can form subject-specific lab study groups, troubleshoot compiler errors and algorithms in a shared sandbox, conduct peer reviews, and prepare for oral viva voce examinations together. |
+
+---
+
+## 13. License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for terms.
